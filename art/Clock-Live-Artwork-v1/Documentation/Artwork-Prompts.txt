@@ -1,0 +1,3 @@
+Production hand-free base: edit the approved black clock. Remove all three hands, the yellow centre cap/counterweight, their shadows and the green dial alarm marker. Restore continuous satin-black dial. Preserve the housing, bezel, all numerals/ticks, fixed perspective, flush rectangular top button and small green ellipse. Preserve square framing and transparency.
+
+Final vector mechanism: replace generated button state transitions with one deterministic well/cap/skirt model. Cap travel 36 px upward; up=armed, down=off. Hand geometry and colours are in vector-parts.json.

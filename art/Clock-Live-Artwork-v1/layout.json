@@ -1,0 +1,61 @@
+{
+  "version": "2.0.0",
+  "coordinateSystem": "top-left origin; x right; y down",
+  "canvasPixels": [
+    1254,
+    1254
+  ],
+  "dialPivotPixels": [
+    627,
+    677
+  ],
+  "dialPivotNormalized": [
+    0.5,
+    0.539872408293461
+  ],
+  "buttonTravelPixels": 36,
+  "buttonTravelNormalized": 0.028708133971291867,
+  "buttonHitRectPixels": [
+    442,
+    91,
+    812,
+    193
+  ],
+  "buttonMotion": "0 = down/alarm off; 1 = up/alarm armed. Cap translates y = -36 * progress; skirt expands to stationary seat.",
+  "greenMark": "Printed ellipse: centre (626.5,151.5) at rest; radii (25,4.5); translates with cap.",
+  "buttonWell": "Static opaque vector recess covers the original flush button baked into the shared body.",
+  "handReference": "All hand SVGs point to 12 at zero degrees; rotate clockwise about (627,677).",
+  "hourHand": {
+    "length": 255,
+    "width": 26
+  },
+  "minuteHand": {
+    "length": 306,
+    "width": 24
+  },
+  "secondHand": {
+    "length": 360,
+    "width": 8,
+    "counterweightLength": 81
+  },
+  "centreHubRadius": 47,
+  "renderOrder": [
+    "ClockBody",
+    "ButtonWell",
+    "button shadow",
+    "ButtonSkirt",
+    "ButtonCap",
+    "optional AlarmPointer",
+    "HourHand",
+    "MinuteHand",
+    "SecondHand",
+    "CentreHub"
+  ],
+  "transition": {
+    "method": "actual vector translation and sidewall reveal",
+    "durationMs": 160,
+    "curve": "easeInOut",
+    "reduceMotion": "snap to endpoint"
+  },
+  "quality": "Single fixed raster body/dial; all hands and button geometry are editable SVG vectors. Full clock is hybrid, not entirely vector."
+}

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254" viewBox="0 0 1254 1254"><defs>
+<linearGradient id="handWhite" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#FFFFFF"/><stop offset=".5" stop-color="#F5F5F2"/><stop offset="1" stop-color="#DCDCD9"/></linearGradient>
+<radialGradient id="hubYellow" cx=".35" cy=".25"><stop stop-color="#FFE347"/><stop offset=".55" stop-color="#FFD203"/><stop offset="1" stop-color="#EAC000"/></radialGradient>
+<linearGradient id="buttonCap" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#454648"/><stop offset=".7" stop-color="#37383A"/><stop offset="1" stop-color="#262729"/></linearGradient>
+<linearGradient id="buttonSkirt" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#101112"/><stop offset=".12" stop-color="#252628"/><stop offset=".5" stop-color="#18191B"/><stop offset=".9" stop-color="#242527"/><stop offset="1" stop-color="#101112"/></linearGradient>
+<linearGradient id="well" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#242527"/><stop offset="1" stop-color="#0C0D0E"/></linearGradient>
+<filter id="handShadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="1.5" dy="3.5" stdDeviation="2.4" flood-color="#000000" flood-opacity=".35"/></filter>
+</defs><path d="M464 125 L788 125 Q793 125 795 132 L806 177 Q808 182 800 183 L450 183 Q444 182 446 177 L457 132 Q459 125 464 125Z" fill="url(#well)" stroke="#545557" stroke-width="1.4"/><ellipse cx="627" cy="180" rx="176" ry="5" fill="#000000" opacity="0.075"/><path d="M455 163.5 L798 163.5 L799 178 Q627 184 454 178Z" fill="url(#buttonSkirt)"/><g transform="translate(0 -13.5)"><path d="M470 132 L782 132 Q788 132 790 138 L798 169 Q800 177 790 178 L461 178 Q451 177 455 169 L463 138 Q465 132 470 132Z" fill="url(#buttonCap)" stroke="#101112" stroke-width="2.5"/>
+<path d="M470 133 L782 133 Q787 133 789 138" fill="none" stroke="#656668" stroke-width="1.2"/>
+<path d="M460 174 Q625 181 794 173" fill="none" stroke="#767779" stroke-width="1" opacity=".55"/>
+<ellipse cx="626.5" cy="151.5" rx="25" ry="4.5" fill="#88D672"/>
+<path d="M604 150 Q626 145 649 150" fill="none" stroke="#B1E5A3" stroke-width=".75" opacity=".65"/></g></svg>

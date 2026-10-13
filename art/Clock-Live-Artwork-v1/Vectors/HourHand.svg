@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254" viewBox="0 0 1254 1254"><defs>
+<linearGradient id="handWhite" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#FFFFFF"/><stop offset=".5" stop-color="#F5F5F2"/><stop offset="1" stop-color="#DCDCD9"/></linearGradient>
+<radialGradient id="hubYellow" cx=".35" cy=".25"><stop stop-color="#FFE347"/><stop offset=".55" stop-color="#FFD203"/><stop offset="1" stop-color="#EAC000"/></radialGradient>
+<linearGradient id="buttonCap" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#454648"/><stop offset=".7" stop-color="#37383A"/><stop offset="1" stop-color="#262729"/></linearGradient>
+<linearGradient id="buttonSkirt" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#101112"/><stop offset=".12" stop-color="#252628"/><stop offset=".5" stop-color="#18191B"/><stop offset=".9" stop-color="#242527"/><stop offset="1" stop-color="#101112"/></linearGradient>
+<linearGradient id="well" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#242527"/><stop offset="1" stop-color="#0C0D0E"/></linearGradient>
+<filter id="handShadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="1.5" dy="3.5" stdDeviation="2.4" flood-color="#000000" flood-opacity=".35"/></filter>
+</defs><g transform="translate(627 677)"><rect x="-13" y="-255" width="26" height="268" rx="13" fill="url(#handWhite)"/></g></svg>

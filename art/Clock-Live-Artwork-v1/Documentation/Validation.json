@@ -1,0 +1,14 @@
+{
+  "allPngsDecode": 50,
+  "assetCatalogJSONs": 13,
+  "allSVGsParse": true,
+  "all9ButtonFramesPixelIdenticalOutsideButtonRegion": true,
+  "pixelInvariantRegionExclusion": [
+    440,
+    84,
+    813,
+    190
+  ],
+  "bodyIsSingleSharedRaster": true,
+  "nativeMacBuildTested": false
+}
