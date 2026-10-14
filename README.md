@@ -75,7 +75,7 @@ This is the real desk companion behind the digital one. The yellow hand has been
 
 ## A cousin in the widget gallery
 
-The native **Type AB1 widget** brings the same little square to macOS’s desktop and Notification Centre, in small, medium and large sizes.
+The native **Type AB1 widget** brings the same little square to macOS’s desktop and Notification Centre as a single small widget.
 
 It is purely analog, with hour and minute hands. The seconds hand takes a well-earned holiday: WidgetKit supplies snapshots, and **macOS decides when to display updates**. An hour of minute positions is prepared ahead of time, without a continuously running timer. [Apple explains the refresh rules here](https://developer.apple.com/documentation/widgetkit/keeping-a-widget-up-to-date).
 

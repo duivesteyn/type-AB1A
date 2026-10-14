@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import UserNotifications
+import WidgetKit
 
 @main
 struct BraunClockApp {
@@ -150,18 +151,26 @@ final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UN
         applicationMenu.submenu = appMenu; mainMenu.addItem(applicationMenu); NSApp.mainMenu = mainMenu
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(woke), name: NSWorkspace.didWakeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(systemZoneChanged), name: .NSSystemTimeZoneDidChange, object: nil)
+        reloadWidgetTimelines()
     }
     func configureWindow() {
         window.level = model.onTop ? .floating : .normal
         window.setContentSize(NSSize(width: model.footprint.width(for: model.sizingStandard), height: model.footprint.height(for: model.sizingStandard)))
+    }
+    private func reloadWidgetTimelines() {
+        // The widget holds precomputed minute entries; nudge macOS to rebuild
+        // them after launch, wake, or a time-zone change so it never sits on
+        // an expired timeline showing an old time.
+        WidgetCenter.shared.reloadAllTimelines()
     }
     @objc func systemZoneChanged() {
         if model.zoneID == "system", model.armed {
             model.disarm(); model.message = "Your Mac’s time zone changed. Set the alarm again for the new zone."
         }
         window.contentView?.needsDisplay = true
+        reloadWidgetTimelines()
     }
-    @objc func woke() { model.checkExpiration(); window.contentView?.needsDisplay = true }
+    @objc func woke() { model.checkExpiration(); window.contentView?.needsDisplay = true; reloadWidgetTimelines() }
     @objc func showClock() { window.orderFrontRegardless() }
     @objc func showSettings() {
         if settingsWindow == nil {

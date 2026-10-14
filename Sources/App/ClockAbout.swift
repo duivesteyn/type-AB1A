@@ -7,15 +7,8 @@ struct ClockAppIcon: View {
     var body: some View {
         GeometryReader { geometry in
             let side = geometry.size.width
-            ZStack {
-                RoundedRectangle(cornerRadius: side * 0.225, style: .continuous)
-                    .fill(LinearGradient(colors: [Color(red: 0.26, green: 0.28, blue: 0.29), Color(red: 0.08, green: 0.09, blue: 0.10)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                RoundedRectangle(cornerRadius: side * 0.225, style: .continuous)
-                    .strokeBorder(.white.opacity(0.18), lineWidth: side * 0.003)
-                FittedClockArtwork(date: reference, zone: TimeZone(identifier: "UTC")!)
-                    .padding(side * 0.10)
-                    .shadow(color: .black.opacity(0.35), radius: side * 0.035, y: side * 0.025)
-            }
+            FittedClockArtwork(date: reference, zone: TimeZone(identifier: "UTC")!)
+                .shadow(color: .black.opacity(0.35), radius: side * 0.035, y: side * 0.025)
         }.aspectRatio(1, contentMode: .fit)
     }
 }

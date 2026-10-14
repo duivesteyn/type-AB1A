@@ -15,7 +15,6 @@ import WidgetKit
         try save(FittedClockArtwork(date: date, zone: TimeZone(identifier: "Australia/Adelaide")!), size: CGSize(width: 164, height: 164), name: "Clock-Preview")
         try save(FittedClockArtwork(date: date, zone: TimeZone(identifier: "Australia/Adelaide")!, armed: true, alarmAngle: 210), size: CGSize(width: 164, height: 164), name: "Clock-Armed-Preview")
         try save(ClockWidgetContent(entry: ClockEntry(date: date, city: .adelaide), family: .systemSmall), size: CGSize(width: 170, height: 170), name: "Widget-Small-Preview")
-        try save(ClockWidgetContent(entry: ClockEntry(date: date, city: .london), family: .systemMedium), size: CGSize(width: 360, height: 170), name: "Widget-Medium-Preview")
-        print("Rendered app and both widget sizes.")
+        print("Rendered app and widget previews.")
     }
 }
