@@ -7,7 +7,7 @@ struct ClockAppIcon: View {
     var body: some View {
         GeometryReader { geometry in
             let side = geometry.size.width
-            FittedClockArtwork(date: reference, zone: TimeZone(identifier: "UTC")!)
+            ClockFaceView(date: reference, zone: TimeZone(identifier: "UTC")!)
                 .shadow(color: .black.opacity(0.35), radius: side * 0.035, y: side * 0.025)
         }.aspectRatio(1, contentMode: .fit)
     }
@@ -68,7 +68,7 @@ struct ClockAbout: View {
                 Text("·")
                 Text("Made by Benjamin Duivesteyn")
             }.font(.caption)
-            Text("Independent tribute · SwiftUI + AppKit + WidgetKit · MIT source")
+            Text("Independent tribute · Drawn entirely in code · AppKit + WidgetKit · MIT source")
                 .font(.caption2).foregroundStyle(.secondary)
             Divider()
             Text(performance.summary).font(.caption).multilineTextAlignment(.center)

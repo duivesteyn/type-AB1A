@@ -15,7 +15,6 @@ refs = {}
 for p in shared + app + widget:
     rel = p.relative_to(root).as_posix()
     refs[rel] = obj('ref'+rel, f'{{isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "{rel}"; sourceTree = SOURCE_ROOT; }}')
-resources = obj('artwork', '{isa = PBXFileReference; lastKnownFileType = folder; path = Resources/Artwork; sourceTree = SOURCE_ROOT; }')
 icon = obj('icon', '{isa = PBXFileReference; lastKnownFileType = image.icns; path = Resources/Clock.icns; sourceTree = SOURCE_ROOT; }')
 html = obj('html', '{isa = PBXFileReference; lastKnownFileType = text.html; path = "art/Clock-Live-Preview.html"; sourceTree = SOURCE_ROOT; }')
 products = {}
@@ -28,7 +27,7 @@ for target, files, product, typ in [('Clock', shared+app, 'Type AB1.app', 'wrapp
         rel = p.relative_to(root).as_posix()
         buildfiles.append(obj('build'+target+rel, f'{{isa = PBXBuildFile; fileRef = {refs[rel]}; }}'))
     src = obj('sources'+target, f'{{isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = {arr(buildfiles)}; runOnlyForDeploymentPostprocessing = 0; }}')
-    resourceFiles = [obj('resource'+target, f'{{isa = PBXBuildFile; fileRef = {resources}; }}')]
+    resourceFiles = []
     if target == 'Clock':
         resourceFiles += [obj('iconbuild', f'{{isa = PBXBuildFile; fileRef = {icon}; }}'), obj('htmlbuild', f'{{isa = PBXBuildFile; fileRef = {html}; }}')]
     res = obj('resources'+target, f'{{isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = {arr(resourceFiles)}; runOnlyForDeploymentPostprocessing = 0; }}')
@@ -55,7 +54,7 @@ dep = obj('dependency', f'{{isa = PBXTargetDependency; target = {uid("targetCloc
 for target in ['Clock', 'ClockWidget']:
     obj('target'+target, f'{{isa = PBXNativeTarget; buildConfigurationList = {configs[target]}; buildPhases = {arr(phases[target])}; buildRules = (); dependencies = {arr([dep] if target == "Clock" else [])}; name = {target}; productName = {target}; productReference = {products[target]}; productType = "com.apple.product-type.{"application" if target == "Clock" else "app-extension"}"; }}')
 productgroup = obj('products', f'{{isa = PBXGroup; children = {arr(list(products.values()))}; name = Products; sourceTree = "<group>"; }}')
-main = obj('main', f'{{isa = PBXGroup; children = {arr(list(refs.values())+[resources, icon, html, productgroup])}; sourceTree = "<group>"; }}')
+main = obj('main', f'{{isa = PBXGroup; children = {arr(list(refs.values())+[icon, html, productgroup])}; sourceTree = "<group>"; }}')
 projcfg = []
 for mode in ['Debug', 'Release']:
     projcfg.append(obj('projcfg'+mode, f'{{isa = XCBuildConfiguration; buildSettings = {{SDKROOT = macosx; CLANG_ENABLE_MODULES = YES; }}; name = {mode}; }}'))

@@ -71,18 +71,24 @@ struct ClockEntry: TimelineEntry {
 }
 
 enum ClockTimeline {
-    /// One entry per minute for the next hour. The first entry is the current
-    /// minute (floored), so there is always something valid to display right
-    /// now; the rest are future minutes. `.atEnd` asks WidgetKit for a fresh
-    /// timeline the moment the last entry expires, instead of leaving a gap.
-    static func entries(for city: ClockCity, now: Date = Date(), count: Int = 60) -> [ClockEntry] {
+    /// How far ahead each timeline reaches, and when macOS is asked for the next one.
+    /// Asking well before the end leaves two spare hours, so a late or skipped
+    /// refresh never freezes the hands on an old time.
+    static let span: TimeInterval = 3 * 3600
+    static let refreshAfter: TimeInterval = 3600
+
+    /// One entry per minute. The first is the current minute (floored), so there is
+    /// always something valid to show right now.
+    static func entries(for city: ClockCity, now: Date = Date()) -> [ClockEntry] {
         let zoneID = city.zoneID
-        return ClockTime.minuteDates(from: now, count: count)
+        return ClockTime.minuteDates(from: now, count: Int(span / 60))
             .map { ClockEntry(date: $0, city: city, zoneID: zoneID) }
     }
 
     static func timeline(for city: ClockCity, now: Date = Date()) -> Timeline<ClockEntry> {
-        Timeline(entries: entries(for: city, now: now), policy: .atEnd)
+        let entries = entries(for: city, now: now)
+        let refresh = entries[0].date.addingTimeInterval(refreshAfter)
+        return Timeline(entries: entries, policy: .after(refresh))
     }
 }
 
@@ -94,7 +100,7 @@ struct ClockProvider: AppIntentTimelineProvider {
         ClockEntry(date: Date(), city: configuration.city)
     }
     func timeline(for configuration: CityConfiguration, in context: Context) async -> Timeline<ClockEntry> {
-        // No timer runs in the extension: precompute an hour of minute positions.
+        // No timer runs in the extension: precompute three hours of minute positions.
         ClockTimeline.timeline(for: configuration.city)
     }
 }
@@ -115,9 +121,8 @@ struct SystemClockProvider: TimelineProvider {
 
 struct ClockWidgetView: View {
     let entry: ClockEntry
-    @Environment(\.widgetFamily) private var family
     var body: some View {
-        ClockWidgetContent(entry: entry, family: family)
+        ClockWidgetContent(entry: entry)
             .containerBackground(for: .widget) { Color.clear }
             .widgetURL(URL(string: "braunclock://show"))
     }
@@ -125,9 +130,8 @@ struct ClockWidgetView: View {
 
 struct ClockWidgetContent: View {
     let entry: ClockEntry
-    let family: WidgetFamily
     var body: some View {
-        FittedClockArtwork(date: entry.date, zone: entry.zone, showSeconds: false)
+        ClockFaceView(date: entry.date, zone: entry.zone, showSeconds: false)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 }
@@ -140,14 +144,14 @@ struct BraunClockWidget: Widget {
         AppIntentConfiguration(kind: kind, intent: CityConfiguration.self, provider: ClockProvider()) { entry in ClockWidgetView(entry: entry) }
             .configurationDisplayName("Type AB1")
             .description("Your system clock, in a little analog square. Updates when macOS allows.")
-            .supportedFamilies([.systemSmall])
+            .supportedFamilies([.systemSmall, .systemLarge])
             .contentMarginsDisabled()
         #else
         // A fully native system-clock widget without an App Intents metadata dependency.
         StaticConfiguration(kind: kind, provider: SystemClockProvider()) { entry in ClockWidgetView(entry: entry) }
             .configurationDisplayName("Type AB1")
             .description("Your Mac’s system time, purely analog. Updates when macOS allows.")
-            .supportedFamilies([.systemSmall])
+            .supportedFamilies([.systemSmall, .systemLarge])
             .contentMarginsDisabled()
         #endif
     }

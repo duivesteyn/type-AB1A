@@ -1,3 +1,6 @@
+> [!NOTE]
+> **Historical brief (October 2026).** Since version 1.1 the clock is drawn entirely in code in `Sources/Shared/ClockDesign.swift`, modelled on a photograph of the real clock, and no longer uses the raster body plate described below. The artboard and the pivot at (627, 677) are unchanged. See `CHANGELOG.md`.
+
 # Build the native Mac clock with these assets
 
 ## Product

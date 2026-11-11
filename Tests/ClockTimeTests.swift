@@ -25,6 +25,10 @@ import Foundation
         precondition(entries.count == 60 && entries.first == date("2026-10-13T09:31:00Z"))
         precondition(entries.last == date("2026-10-13T10:30:00Z"))
         close(HandAngles.at(date("2026-10-13T09:31:45Z"), zone: utc, showSeconds: false).minute, 186)
+        // The widget plans three hours ahead: 180 consecutive whole minutes.
+        let long = ClockTime.minuteDates(from: date("2026-10-13T23:59:30Z"), count: 180)
+        precondition(long.count == 180 && long.first == date("2026-10-13T23:59:00Z") && long.last == date("2026-10-14T02:58:00Z"))
+        precondition(zip(long, long.dropFirst()).allSatisfy { $1.timeIntervalSince($0) == 60 })
         print("Passed clock rollover, half-hour zone, DST, alarm and widget timeline checks.")
     }
 }
