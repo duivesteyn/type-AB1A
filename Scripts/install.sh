@@ -16,5 +16,7 @@ rm -rf "$TARGET"
 ditto "$BUILT" "$TARGET"
 "$LSREGISTER" -f "$TARGET"
 pluginkit -a "$TARGET/Contents/PlugIns/TypeAB1Widget.appex"
+# Stop any widget process still running the old build; macOS starts the new one on demand.
+pkill -f "^$TARGET/Contents/PlugIns/TypeAB1Widget\.appex/Contents/MacOS/TypeAB1Widget" 2>/dev/null || true
 open "$TARGET"
 echo "Installed $TARGET. The app asks macOS to refresh the widget on launch."

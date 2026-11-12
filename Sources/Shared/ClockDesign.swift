@@ -63,26 +63,34 @@ enum ClockDesign {
     }
     static func white(_ alpha: CGFloat) -> CGColor { CGColor(srgbRed: 1, green: 1, blue: 1, alpha: alpha) }
     static func black(_ alpha: CGFloat) -> CGColor { CGColor(srgbRed: 0, green: 0, blue: 0, alpha: alpha) }
-    static let ink = rgb(0xEDEDE7)          // ticks and numerals
     static let handWhite = rgb(0xF5F5F2)
     static let yellow = rgb(0xFFD203)
     static let printedGreen = rgb(0x88D672)
     static let alarmGreen = rgb(0x67D64D)
 
-    // MARK: Static body
+    // MARK: Cube dial
 
-    /// Housing, dial recess, dial, ticks and numerals. Optionally the top button,
-    /// for renderers that never animate it (widget, icon).
+    /// The cube's dial in shared `DialSpec` form.
+    static let dialSpec = DialSpec(
+        center: pivot, face: dialRadius, tickOuter: tickOuter, minorTick: minuteTick, majorTick: hourTick,
+        numeralSize: numeralSize, numeralGap: numeralGap,
+        hour: HandShape(length: hourHand.length, width: hourHand.width, tail: hourHand.tail),
+        minute: HandShape(length: minuteHand.length, width: minuteHand.width, tail: minuteHand.tail),
+        second: HandShape(length: secondHand.length, width: secondHand.width, tail: secondHand.tail),
+        alarmLength: alarmHand.length, counterweight: (counterweightRadius, counterweightOffset),
+        hubRadius: hubRadius, glassRadius: bezelRadius)
+
+    /// The original black Type AB1, for callers that don't pass a style.
+    static let standardPalette = ClockPalette(.standard, dark: true)
+
+    // MARK: Cube parts (default: black Type AB1)
+
+    /// Housing, dial recess, dial, ticks and numerals; optionally the top button.
     static func drawBody(_ c: CGContext, buttonProgress: Double? = nil) {
-        if let buttonProgress { drawButton(c, progress: buttonProgress) }
-        drawHousing(c)
-        drawDialRecess(c)
-        drawDial(c)
-        drawTicks(c)
-        drawNumerals(c)
+        ClockRender.drawStill(c, .standard, standardPalette, control: buttonProgress)
     }
 
-    static func drawButton(_ c: CGContext, progress: Double) {
+    static func drawButton(_ c: CGContext, progress: Double, _ p: ClockPalette = standardPalette) {
         let rect = buttonRect(progress: progress)
         let corner: CGFloat = 9
         let path = CGMutablePath()
@@ -93,198 +101,98 @@ enum ClockDesign {
         path.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.minY + corner), control: CGPoint(x: rect.maxX, y: rect.minY))
         path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
         path.closeSubpath()
+        let light = !p.dark
         c.saveGState()
         c.addPath(path); c.clip()
         // Front face, lit from above.
-        linear(c, [rgb(0x37383B), rgb(0x232426), rgb(0x1A1B1D)], [0, 0.45, 1],
+        linear(c, light ? [rgb(0xF4F4F2), rgb(0xE2E2DF), rgb(0xCFCFCB)] : [rgb(0x37383B), rgb(0x232426), rgb(0x1A1B1D)], [0, 0.45, 1],
                from: CGPoint(x: 0, y: rect.minY), to: CGPoint(x: 0, y: housing.minY))
         // Rounded side edges.
-        linear(c, [black(0.45), black(0), black(0), black(0.45)], [0, 0.06, 0.94, 1],
+        linear(c, [black(light ? 0.15 : 0.45), black(0), black(0), black(light ? 0.15 : 0.45)], [0, 0.06, 0.94, 1],
                from: CGPoint(x: rect.minX, y: 0), to: CGPoint(x: rect.maxX, y: 0))
         // Thin top face seen from slightly above, with its printed green mark.
         let top = CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: 9)
-        linear(c, [rgb(0x55565A), rgb(0x3A3B3E)], [0, 1], from: CGPoint(x: 0, y: top.minY), to: CGPoint(x: 0, y: top.maxY))
-        c.setFillColor(white(0.22)); c.fill(CGRect(x: rect.minX + corner, y: rect.minY, width: rect.width - corner * 2, height: 1.6))
+        linear(c, light ? [rgb(0xFFFFFF), rgb(0xF0F0EE)] : [rgb(0x55565A), rgb(0x3A3B3E)], [0, 1],
+               from: CGPoint(x: 0, y: top.minY), to: CGPoint(x: 0, y: top.maxY))
+        c.setFillColor(white(light ? 0.8 : 0.22)); c.fill(CGRect(x: rect.minX + corner, y: rect.minY, width: rect.width - corner * 2, height: 1.6))
         c.setFillColor(printedGreen)
         c.fillEllipse(in: CGRect(x: pivot.x - 22, y: top.midY - 2.6, width: 44, height: 5.2))
         c.restoreGState()
     }
 
-    static func drawHousing(_ c: CGContext) {
-        let path = CGPath(roundedRect: housing, cornerWidth: housingCorner, cornerHeight: housingCorner, transform: nil)
+    static func drawHousing(_ c: CGContext, _ p: ClockPalette = standardPalette) {
+        drawHousingSurface(c, CGPath(roundedRect: housing, cornerWidth: housingCorner, cornerHeight: housingCorner, transform: nil), bounds: housing, p)
+    }
+
+    /// Moulded plastic filling `path`, lit from the upper left, with a bevelled edge.
+    /// Shared by every case and by the app icon's rounded-square body.
+    static func drawHousingSurface(_ c: CGContext, _ path: CGPath, bounds: CGRect, _ p: ClockPalette = standardPalette,
+                                   reference: CGFloat? = nil) {
+        let unit = bounds.width / (reference ?? housing.width)
         c.saveGState()
         c.addPath(path); c.clip()
-        linear(c, [rgb(0x333436), rgb(0x2A2B2D), rgb(0x222325)], [0, 0.55, 1],
-               from: CGPoint(x: 0, y: housing.minY), to: CGPoint(x: 0, y: housing.maxY))
+        linear(c, p.housing, [0, 0.55, 1], from: CGPoint(x: 0, y: bounds.minY), to: CGPoint(x: 0, y: bounds.maxY))
         // Soft sheen from a window up and to the left.
-        radial(c, [white(0.075), white(0)], [0, 1], center: CGPoint(x: housing.minX + 250, y: housing.minY + 160), radius: 760)
-        grain(c, in: housing, alpha: 0.11)
+        radial(c, [white(p.sheen), white(0)], [0, 1], center: CGPoint(x: bounds.minX + 250 * unit, y: bounds.minY + 160 * unit), radius: 760 * unit)
+        grain(c, in: bounds, alpha: p.grain)
         // Bevel: bright top lip, darker lower edge.
-        c.addPath(path); c.setLineWidth(14); c.replacePathWithStrokedPath(); c.clip()
-        linear(c, [white(0.20), white(0.04), black(0.10), black(0.45)], [0, 0.08, 0.6, 1],
-               from: CGPoint(x: 0, y: housing.minY), to: CGPoint(x: 0, y: housing.maxY))
+        c.addPath(path); c.setLineWidth(14 * unit); c.replacePathWithStrokedPath(); c.clip()
+        linear(c, [white(p.bevelLight), white(p.bevelLight * 0.2), black(p.bevelDark * 0.22), black(p.bevelDark)], [0, 0.08, 0.6, 1],
+               from: CGPoint(x: 0, y: bounds.minY), to: CGPoint(x: 0, y: bounds.maxY))
         c.restoreGState()
         c.saveGState()
-        c.addPath(path); c.setStrokeColor(black(0.7)); c.setLineWidth(2); c.strokePath()
-        c.restoreGState()
-    }
-
-    static func drawDialRecess(_ c: CGContext) {
-        // A chamfered opening: in shadow at the top, catching light at the bottom.
-        let outer = bezelRadius + 10
-        c.saveGState()
-        c.addEllipse(in: circle(outer)); c.clip()
-        linear(c, [rgb(0x0B0C0D), rgb(0x1A1B1D), rgb(0x55575A)], [0, 0.5, 1],
-               from: CGPoint(x: 0, y: pivot.y - outer), to: CGPoint(x: 0, y: pivot.y + outer))
-        c.restoreGState()
-        // Clear crystal edge between the opening and the dial.
-        c.saveGState()
-        c.addEllipse(in: circle(bezelRadius)); c.clip()
-        linear(c, [rgb(0x0E0F10), rgb(0x161719)], [0, 1],
-               from: CGPoint(x: 0, y: pivot.y - bezelRadius), to: CGPoint(x: 0, y: pivot.y + bezelRadius))
+        c.addPath(path); c.setStrokeColor(p.outline); c.setLineWidth(2 * unit); c.strokePath()
         c.restoreGState()
     }
 
-    static func drawDial(_ c: CGContext) {
+    /// A chamfered round opening: in shadow at the top, catching light at the bottom,
+    /// with the clear crystal's edge inside it.
+    static func drawDialRecess(_ c: CGContext, _ p: ClockPalette = standardPalette, center: CGPoint = pivot,
+                               radius: CGFloat = bezelRadius, chamfer: CGFloat = 10) {
+        let outer = radius + chamfer
         c.saveGState()
-        c.addEllipse(in: circle(dialRadius)); c.clip()
-        radial(c, [rgb(0x232426), rgb(0x1C1D1F), rgb(0x161718)], [0, 0.7, 1], center: pivot, radius: dialRadius)
-        grain(c, in: circle(dialRadius), alpha: 0.05)
-        // The housing lip shades the top of the dial.
-        radial(c, [black(0), black(0), black(0.45)], [0, 0.88, 1.0],
-               center: CGPoint(x: pivot.x, y: pivot.y + 16), radius: dialRadius + 14)
+        c.addEllipse(in: CGRect(x: center.x - outer, y: center.y - outer, width: outer * 2, height: outer * 2)); c.clip()
+        linear(c, p.recess, [0, 0.5, 1], from: CGPoint(x: 0, y: center.y - outer), to: CGPoint(x: 0, y: center.y + outer))
+        c.restoreGState()
+        c.saveGState()
+        c.addEllipse(in: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)); c.clip()
+        linear(c, p.crystalEdge, [0, 1], from: CGPoint(x: 0, y: center.y - radius), to: CGPoint(x: 0, y: center.y + radius))
         c.restoreGState()
     }
 
-    static func drawTicks(_ c: CGContext) {
+    /// The dial disc, shaded at the top by the case lip.
+    static func drawDial(_ c: CGContext, _ p: ClockPalette = standardPalette, _ d: DialSpec = dialSpec) {
         c.saveGState()
-        c.setFillColor(ink)
-        for index in 0..<60 {
-            let size = index % 5 == 0 ? hourTick : minuteTick
-            c.saveGState()
-            c.translateBy(x: pivot.x, y: pivot.y)
-            c.rotate(by: CGFloat(index) * .pi / 30)
-            c.fill(CGRect(x: -size.width / 2, y: -tickOuter, width: size.width, height: size.height))
-            c.restoreGState()
+        c.addEllipse(in: d.circle(d.face)); c.clip()
+        radial(c, p.dial, [0, 0.7, 1], center: d.center, radius: d.face)
+        if p.finish == .lagoon {
+            // Lacquered sunburst: a bright bloom up and to the left.
+            radial(c, [white(0.32), white(0)], [0, 1], center: CGPoint(x: d.center.x - d.face * 0.35, y: d.center.y - d.face * 0.45), radius: d.face * 0.9)
         }
+        grain(c, in: d.circle(d.face), alpha: p.dialGrain)
+        radial(c, [black(0), black(0), black(p.dialShade)], [0, 0.88, 1.0],
+               center: CGPoint(x: d.center.x, y: d.center.y + d.face * 0.037), radius: d.face * 1.032)
         c.restoreGState()
+    }
+
+    static func drawTicks(_ c: CGContext, minuteTicks: Bool = true) {
+        DialKit.ticks(c, dialSpec, standardPalette, minuteTicks: minuteTicks)
     }
 
     static func drawNumerals(_ c: CGContext) {
-        let font = CTFontCreateWithName("HelveticaNeue" as CFString, numeralSize, nil)
-        let outer = tickOuter - hourTick.height - numeralGap
-        for hour in 1...12 {
-            let text = NSAttributedString(string: "\(hour)", attributes: [
-                NSAttributedString.Key(kCTFontAttributeName as String): font,
-                NSAttributedString.Key(kCTForegroundColorAttributeName as String): ink,
-                NSAttributedString.Key(kCTKernAttributeName as String): -1.5
-            ])
-            let line = CTLineCreateWithAttributedString(text)
-            let bounds = CTLineGetBoundsWithOptions(line, .useGlyphPathBounds)
-            let angle = CGFloat(hour) * .pi / 6
-            let (sx, cy) = (sin(angle), -cos(angle))
-            // Keep each numeral's nearest edge the same distance from the ticks.
-            let reach = abs(sx) * bounds.width / 2 + abs(cy) * bounds.height / 2
-            let centre = CGPoint(x: pivot.x + (outer - reach) * sx, y: pivot.y + (outer - reach) * cy)
-            c.saveGState()
-            c.translateBy(x: centre.x, y: centre.y)
-            c.scaleBy(x: 1, y: -1)
-            c.textMatrix = .identity
-            c.textPosition = CGPoint(x: -bounds.midX, y: -bounds.midY)
-            CTLineDraw(line, c)
-            c.restoreGState()
-        }
+        DialKit.numerals(c, dialSpec, standardPalette, .standard)
     }
-
-    // MARK: Moving parts
 
     /// One hand pointing at 12, without a shadow. Callers rotate about `pivot`.
-    static func drawHand(_ c: CGContext, _ kind: HandKind) {
-        c.saveGState()
-        c.translateBy(x: pivot.x, y: pivot.y)
-        switch kind {
-        case .hour: whiteHand(c, hourHand)
-        case .minute: whiteHand(c, minuteHand)
-        case .second:
-            let hand = secondHand
-            let path = CGMutablePath()
-            path.addRoundedRect(in: CGRect(x: -hand.width / 2, y: -hand.length, width: hand.width, height: hand.length + hand.tail),
-                                cornerWidth: hand.width / 2, cornerHeight: hand.width / 2)
-            path.addEllipse(in: CGRect(x: -counterweightRadius, y: counterweightOffset - counterweightRadius,
-                                       width: counterweightRadius * 2, height: counterweightRadius * 2))
-            c.addPath(path); c.clip()
-            linear(c, [rgb(0xFFE14A), yellow, rgb(0xEABF00)], [0, 0.5, 1],
-                   from: CGPoint(x: -counterweightRadius, y: 0), to: CGPoint(x: counterweightRadius, y: 0))
-        case .alarm:
-            let hand = alarmHand
-            c.setFillColor(rgb(0x3A3B3E))
-            c.fill(CGRect(x: -hand.width / 2, y: -hand.length, width: hand.width, height: hand.length))
-            c.setFillColor(alarmGreen)
-            c.fill(CGRect(x: -4.5, y: -hand.length, width: 9, height: 34))
-        }
-        c.restoreGState()
-    }
+    static func drawHand(_ c: CGContext, _ kind: HandKind) { DialKit.drawHand(c, dialSpec, standardPalette, kind) }
+    static func drawHub(_ c: CGContext) { DialKit.drawHub(c, dialSpec, standardPalette) }
+    static func drawGlass(_ c: CGContext) { DialKit.glass(c, center: pivot, radius: bezelRadius, strength: 1) }
 
-    static func drawHub(_ c: CGContext) {
-        let rect = circle(hubRadius)
-        c.saveGState()
-        c.addEllipse(in: rect); c.clip()
-        radial(c, [rgb(0xFFE866), yellow, rgb(0xE8BC00)], [0, 0.5, 1],
-               center: CGPoint(x: pivot.x - 16, y: pivot.y - 20), radius: hubRadius * 1.45)
-        c.restoreGState()
-        c.saveGState()
-        c.setStrokeColor(rgb(0xD9AE00)); c.setLineWidth(2)
-        c.strokeEllipse(in: rect.insetBy(dx: 1, dy: 1))
-        c.restoreGState()
-    }
-
-    /// Clear crystal over everything on the dial: a soft reflection and a lit rim.
-    static func drawGlass(_ c: CGContext) {
-        c.saveGState()
-        c.addEllipse(in: circle(bezelRadius)); c.clip()
-        // Broad crescent reflection, upper left, fading to nothing at its inner edge.
-        let inner = bezelRadius * 1.08
-        let innerCentre = CGPoint(x: pivot.x + 70, y: pivot.y + 95)
-        if let gradient = CGGradient(colorsSpace: CGColorSpace(name: CGColorSpace.sRGB),
-                                     colors: [white(0), white(0.05), white(0.09)] as CFArray, locations: [0, 0.6, 1]) {
-            c.drawRadialGradient(gradient, startCenter: innerCentre, startRadius: inner,
-                                 endCenter: innerCentre, endRadius: inner + 160, options: [.drawsAfterEndLocation])
-        }
-        // Gentle overall sheen.
-        linear(c, [white(0.035), white(0), white(0)], [0, 0.45, 1],
-               from: CGPoint(x: 0, y: pivot.y - bezelRadius), to: CGPoint(x: 0, y: pivot.y + bezelRadius))
-        c.restoreGState()
-        // Polished crystal rim, brightest where it faces the light.
-        c.saveGState()
-        c.addEllipse(in: circle(bezelRadius - 4)); c.setLineWidth(5); c.replacePathWithStrokedPath(); c.clip()
-        linear(c, [white(0.06), white(0.03), white(0.30)], [0, 0.45, 1],
-               from: CGPoint(x: pivot.x - 300, y: pivot.y - 340), to: CGPoint(x: pivot.x + 300, y: pivot.y + 340))
-        c.restoreGState()
-    }
-
-    // MARK: Composition
-
-    /// Everything on the dial that moves, in stacking order, with screen-fixed shadows.
-    /// `shadowScale` converts artboard units to the context's base (shadow) space.
+    /// Everything on the dial that moves, with screen-fixed shadows.
     static func drawMovingParts(_ c: CGContext, angles: HandAngles, showSeconds: Bool,
                                 alarmAngle: Double?, shadowScale: CGFloat) {
-        func rotated(_ degrees: Double, _ kind: HandKind, lift: CGFloat) {
-            c.saveGState()
-            setShadow(c, lift: lift, scale: shadowScale)
-            c.translateBy(x: pivot.x, y: pivot.y)
-            c.rotate(by: CGFloat(degrees) * .pi / 180)
-            c.translateBy(x: -pivot.x, y: -pivot.y)
-            drawHand(c, kind)
-            c.restoreGState()
-        }
-        if let alarmAngle { rotated(alarmAngle, .alarm, lift: 2) }
-        rotated(angles.hour, .hour, lift: 4)
-        rotated(angles.minute, .minute, lift: 5)
-        if showSeconds { rotated(angles.second, .second, lift: 7) }
-        c.saveGState()
-        setShadow(c, lift: 7, scale: shadowScale)
-        drawHub(c)
-        c.restoreGState()
+        DialKit.drawMoving(c, dialSpec, standardPalette, angles: angles, showSeconds: showSeconds,
+                           alarmAngle: alarmAngle, shadowScale: shadowScale)
     }
 
     /// Light from above: shadows fall straight down, further for higher parts.
@@ -309,16 +217,8 @@ enum ClockDesign {
         c.drawRadialGradient(gradient, startCenter: center, startRadius: 0, endCenter: center, endRadius: radius, options: [.drawsAfterEndLocation])
     }
 
-    private static func whiteHand(_ c: CGContext, _ hand: Hand) {
-        let rect = CGRect(x: -hand.width / 2, y: -hand.length, width: hand.width, height: hand.length + hand.tail)
-        c.addPath(CGPath(roundedRect: rect, cornerWidth: hand.width / 2, cornerHeight: hand.width / 2, transform: nil))
-        c.clip()
-        linear(c, [rgb(0xFFFFFF), handWhite, rgb(0xD4D4CF)], [0, 0.45, 1],
-               from: CGPoint(x: rect.minX, y: 0), to: CGPoint(x: rect.maxX, y: 0))
-    }
-
     /// Fine moulded-plastic grain from a small fixed noise tile, one tile pixel per device pixel.
-    private static func grain(_ c: CGContext, in rect: CGRect, alpha: CGFloat) {
+    static func grain(_ c: CGContext, in rect: CGRect, alpha: CGFloat) {
         guard let tile = noiseTile else { return }
         let deviceScale = max(0.05, abs(c.userSpaceToDeviceSpaceTransform.a))
         let size = CGFloat(tile.width) / deviceScale
@@ -342,4 +242,27 @@ enum ClockDesign {
                        space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue),
                        provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)
     }()
+}
+
+/// The square desk alarm clock: the original Type AB1, now in black, white or lagoon.
+enum CubeFace: ClockFace {
+    static func crop(_ style: ClockStyle) -> CGRect { ClockGeometry.sourceSquare }
+    static func dial(_ style: ClockStyle) -> DialSpec { ClockDesign.dialSpec }
+    static var controlBehindBody: Bool { true }
+    static func controlRect(_ style: ClockStyle) -> CGRect? {
+        let cap = ClockDesign.buttonRect(progress: 1)
+        return CGRect(x: cap.minX, y: cap.minY, width: cap.width, height: ClockDesign.housing.minY + 30 - cap.minY)
+    }
+    static func drawControl(_ c: CGContext, _ style: ClockStyle, _ palette: ClockPalette, progress: Double) {
+        ClockDesign.drawButton(c, progress: progress, palette)
+    }
+    static func drawBody(_ c: CGContext, _ style: ClockStyle, _ p: ClockPalette) {
+        let d = ClockDesign.dialSpec
+        ClockDesign.drawHousing(c, p)
+        ClockDesign.drawDialRecess(c, p)
+        ClockDesign.drawDial(c, p, d)
+        DialKit.ticks(c, d, p)
+        DialKit.numerals(c, d, p, style)
+        if style.dialText { DialKit.dialText(c, d, p) }
+    }
 }

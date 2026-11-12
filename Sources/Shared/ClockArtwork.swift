@@ -1,51 +1,69 @@
 import SwiftUI
 import WidgetKit
 
-/// The clock as SwiftUI layers, for the widget and the About window.
+/// The clock as SwiftUI layers, for the widget, the About window and Settings previews.
 ///
-/// Each layer is a cached full-square image from `ClockRaster`; hands are rotated about
-/// the off-centre dial pivot. WidgetKit archives each image once and stores only a
-/// rotation per timeline entry, so a long timeline stays small.
+/// Every layer is a cached image from `ClockRaster`; hands rotate about the dial centre.
+/// WidgetKit archives each distinct image once and stores only rotations per timeline
+/// entry, so long timelines stay small.
 struct ClockFaceView: View {
     let date: Date
     let zone: TimeZone
+    var style: ClockStyle = .standard
     var showSeconds = true
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
+        let face = ClockRender.face(style)
+        let crop = face.crop(style)
         GeometryReader { geometry in
-            let side = min(geometry.size.width, geometry.size.height)
-            let pixels = ClockRaster.bucket(side * displayScale)
-            let angles = HandAngles.at(date, zone: zone, showSeconds: showSeconds)
-            let unit = side / ClockGeometry.cropSide
-            ZStack {
-                layer(.body(buttonProgress: 0), pixels)
-                hand(.hour, angles.hour, pixels, unit: unit, lift: 4)
-                hand(.minute, angles.minute, pixels, unit: unit, lift: 5)
-                if showSeconds { hand(.second, angles.second, pixels, unit: unit, lift: 7) }
-                layer(.hub, pixels).shadow(color: .black.opacity(0.5), radius: 5.5 * unit, x: 1.75 * unit, y: 7 * unit)
-                layer(.glass, pixels)
+            let fitted = ClockRaster.fit(crop, in: CGRect(origin: .zero, size: geometry.size))
+            let pixels = ClockRaster.bucket(fitted.width * displayScale)
+            let unit = fitted.width / crop.width
+            ZStack(alignment: .topLeading) {
+                layer(.body(control: 0), pixels)
+                analog(face.dial(style), crop: crop, pixels: pixels, unit: unit)
             }
-            .frame(width: side, height: side)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(width: fitted.width, height: fitted.height)
+            .position(x: fitted.midX, y: fitted.midY)
         }
-        .aspectRatio(1, contentMode: .fit)
+        .aspectRatio(crop.width / crop.height, contentMode: .fit)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Analog clock")
+        .accessibilityLabel("Clock")
         .accessibilityValue(date.formatted(Date.FormatStyle(date: .omitted, time: showSeconds ? .standard : .shortened, timeZone: zone)))
     }
 
-    private func hand(_ kind: ClockDesign.HandKind, _ degrees: Double, _ pixels: Int, unit: CGFloat, lift: CGFloat) -> some View {
+    private var dark: Bool { colorScheme == .dark }
+    private var shownStyle: ClockStyle {
+        var s = style; if !showSeconds { s.seconds = .hidden }; return s
+    }
+
+    @ViewBuilder private func analog(_ dial: DialSpec, crop: CGRect, pixels: Int, unit: CGFloat) -> some View {
+        let angles = HandAngles.at(date, zone: zone, showSeconds: shownStyle.seconds != .hidden)
+        let anchor = UnitPoint(x: (dial.center.x - crop.minX) / crop.width, y: (dial.center.y - crop.minY) / crop.height)
+        let lift = dial.face / ClockDesign.dialRadius * unit
+        if style.dateWindow { layer(.date(ClockReading.day(date, zone)), pixels) }
+        hand(.hour, angles.hour, pixels, anchor, lift * 4)
+        hand(.minute, angles.minute, pixels, anchor, lift * 5)
+        if shownStyle.seconds != .hidden { hand(.second, angles.second, pixels, anchor, lift * 7) }
+        layer(.hub, pixels).shadow(color: .black.opacity(0.5), radius: (4 * unit + lift * 7) * 0.5, x: lift * 7 * 0.25, y: lift * 7)
+        if style.glass { layer(.glass, pixels) }
+    }
+
+    private func hand(_ kind: ClockDesign.HandKind, _ degrees: Double, _ pixels: Int, _ anchor: UnitPoint, _ lift: CGFloat) -> some View {
         layer(.hand(kind), pixels)
-            .rotationEffect(.degrees(degrees), anchor: UnitPoint(x: ClockGeometry.pivotFraction.x, y: ClockGeometry.pivotFraction.y))
+            .rotationEffect(.degrees(degrees), anchor: anchor)
             // Matches ClockDesign.setShadow: applied after rotation so the light stays put.
-            .shadow(color: .black.opacity(0.5), radius: (4 + lift) * unit * 0.5, x: lift * 0.25 * unit, y: lift * unit)
+            .shadow(color: .black.opacity(0.5), radius: (lift + 4 * lift / 4) * 0.5, x: lift * 0.25, y: lift)
     }
 
     @ViewBuilder private func layer(_ layer: ClockRaster.Layer, _ pixels: Int) -> some View {
-        if let image = ClockRaster.image(layer, pixels: pixels) {
-            let view = Image(decorative: image, scale: 1).resizable().interpolation(.high)
-            if #available(macOS 15.0, *) { view.widgetAccentedRenderingMode(.fullColor) } else { view }
-        }
+        if let image = ClockRaster.image(layer, style: shownStyle, dark: dark, pixels: pixels) { picture(image) }
+    }
+
+    @ViewBuilder private func picture(_ image: CGImage) -> some View {
+        let view = Image(decorative: image, scale: 1).resizable().interpolation(.high)
+        if #available(macOS 15.0, *) { view.widgetAccentedRenderingMode(.fullColor) } else { view }
     }
 }

@@ -4,12 +4,14 @@ struct HandAngles {
     let hour: Double
     let minute: Double
     let second: Double
-    static func at(_ date: Date, zone: TimeZone, showSeconds: Bool = true) -> HandAngles {
+    /// `smooth` adds the fraction of the current second, for a sweeping seconds hand.
+    static func at(_ date: Date, zone: TimeZone, showSeconds: Bool = true, smooth: Bool = false) -> HandAngles {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = zone
-        let c = calendar.dateComponents([.hour, .minute, .second], from: date)
+        let c = calendar.dateComponents([.hour, .minute, .second, .nanosecond], from: date)
         let h = Double(c.hour ?? 0), m = Double(c.minute ?? 0)
-        let s = showSeconds ? Double(c.second ?? 0) : 0
+        let fraction = smooth ? Double(c.nanosecond ?? 0) / 1_000_000_000 : 0
+        let s = showSeconds ? Double(c.second ?? 0) + fraction : 0
         return HandAngles(hour: 30 * (h.truncatingRemainder(dividingBy: 12) + m / 60 + s / 3600),
                           minute: 6 * (m + s / 60), second: 6 * s)
     }
@@ -17,6 +19,11 @@ struct HandAngles {
 
 enum ClockTime {
     static let zones = ["Australia/Adelaide", "Australia/Sydney", "Australia/Perth", "Europe/London", "Pacific/Auckland", "America/New_York", "Asia/Tokyo", "UTC"]
+    /// "Australia/Adelaide" → "Adelaide", "America/New_York" → "New York".
+    static func cityName(_ identifier: String) -> String {
+        guard let city = identifier.split(separator: "/").last else { return identifier }
+        return city.replacingOccurrences(of: "_", with: " ")
+    }
     static func nextAlarm(after date: Date, hour: Int, minute: Int, zone: TimeZone) -> Date? {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = zone

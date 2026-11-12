@@ -4,7 +4,7 @@ import UserNotifications
 import WidgetKit
 
 @main
-struct BraunClockApp {
+struct TypeAB1App {
     @MainActor static func main() {
         let app = NSApplication.shared
         let delegate = ClockDelegate()
@@ -21,7 +21,15 @@ final class ClockModel: ObservableObject {
     @Published var footprint: ClockFootprint { didSet { defaults.set(footprint.rawValue, forKey: "footprint"); updateWindow?() } }
     @Published var allSpaces: Bool { didSet { defaults.set(allSpaces, forKey: "allSpaces"); updateWindow?() } }
     @Published var onTop: Bool { didSet { defaults.set(onTop, forKey: "onTop"); updateWindow?() } }
-    @Published var showMenuBarItem: Bool { didSet { defaults.set(showMenuBarItem, forKey: "showMenuBarItem"); updateMenuBar?() } }
+    @Published var style: ClockStyle {
+        didSet {
+            if let data = try? JSONEncoder().encode(style) { defaults.set(data, forKey: "clockStyle") }
+            // Tick, sweep or off is remembered for each clock family.
+            secondsByFamily[style.family.rawValue] = style.seconds.rawValue
+            defaults.set(secondsByFamily, forKey: "secondsByFamily")
+        }
+    }
+    private var secondsByFamily: [String: String] = [:]
     @Published var armed = false
     @Published var nextAlarm: Date?
     @Published var alarmHour: Int { didSet { defaults.set(alarmHour, forKey: "alarmHour") } }
@@ -29,13 +37,11 @@ final class ClockModel: ObservableObject {
     @Published var message = ""
     @Published var scheduling = false
     var updateWindow: (() -> Void)?
-    var updateMenuBar: (() -> Void)?
-    var openSettings: (() -> Void)?
+    var openSettings: ((SettingsTab?) -> Void)?
     var openAbout: (() -> Void)?
     private let defaults = UserDefaults.standard
     private var requestGeneration = 0
     var zone: TimeZone { zoneID == "system" ? .autoupdatingCurrent : TimeZone(identifier: zoneID) ?? .autoupdatingCurrent }
-    var zoneLabel: String { zoneID == "system" ? "System · \(zone.identifier)" : zoneID }
     init() {
         // Preserve local preferences when upgrading from the original app identity.
         if !defaults.bool(forKey: "typeAB1IdentityMigration") {
@@ -59,7 +65,9 @@ final class ClockModel: ObservableObject {
         footprint = ClockFootprint(rawValue: defaults.string(forKey: "footprint") ?? "small") ?? .small
         allSpaces = defaults.bool(forKey: "allSpaces")
         onTop = defaults.bool(forKey: "onTop")
-        showMenuBarItem = defaults.bool(forKey: "showMenuBarItem")
+        defaults.removeObject(forKey: "showMenuBarItem") // The menu-bar icon was removed in 1.4.
+        style = (defaults.data(forKey: "clockStyle")).flatMap { try? JSONDecoder().decode(ClockStyle.self, from: $0) } ?? .standard
+        secondsByFamily = defaults.dictionary(forKey: "secondsByFamily") as? [String: String] ?? [:]
         alarmHour = defaults.object(forKey: "alarmHour") as? Int ?? 7
         alarmMinute = defaults.integer(forKey: "alarmMinute")
         // Reconcile the saved date with the actual notification request before raising the button.
@@ -72,6 +80,19 @@ final class ClockModel: ObservableObject {
                 }
             }
         } else { defaults.removeObject(forKey: "nextAlarm") }
+    }
+    /// Switch to a preset, keeping the seconds motion last chosen for its family.
+    func apply(_ preset: ClockPreset) {
+        var style = preset.style
+        if let saved = secondsByFamily[style.family.rawValue].flatMap(SecondsMotion.init(rawValue:)) { style.seconds = saved }
+        self.style = style
+    }
+    /// Change clock family, bringing back the seconds motion last chosen for it.
+    func setFamily(_ family: ClockFamily) {
+        var style = self.style
+        style.family = family
+        if let saved = secondsByFamily[family.rawValue].flatMap(SecondsMotion.init(rawValue:)) { style.seconds = saved }
+        self.style = style.normalised()
     }
     func disarm() {
         requestGeneration += 1
@@ -119,20 +140,20 @@ final class ClockModel: ObservableObject {
 final class ClockWindow: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
+    /// Go wherever it's put, right down to the bottom edge of the screen.
+    override func constrainFrameRect(_ frameRect: NSRect, to screen: NSScreen?) -> NSRect { frameRect }
 }
 
 @MainActor
-final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotificationCenterDelegate, NSMenuDelegate {
+final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotificationCenterDelegate {
     enum MenuContext {
         case dock
         case clockContext
-        case menuBar
     }
 
     let model = ClockModel()
     var window: ClockWindow!
-    var settingsWindow: NSWindow?
-    var statusItem: NSStatusItem?
+    var settingsController: SettingsWindowController?
     var aboutWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -144,11 +165,9 @@ final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UN
         window.setFrameAutosaveName("ClockPlacement")
         if !window.setFrameUsingName("ClockPlacement") { window.center() }
         model.updateWindow = { [weak self] in self?.configureWindow() }
-        model.updateMenuBar = { [weak self] in self?.configureMenuBar() }
-        model.openSettings = { [weak self] in self?.showSettings() }
+        model.openSettings = { [weak self] tab in self?.showSettings(tab) }
         model.openAbout = { [weak self] in self?.showAbout() }
         configureWindow(); window.orderFrontRegardless()
-        configureMenuBar()
 
         let mainMenu = NSMenu()
         let appMenuItem = NSMenuItem()
@@ -157,7 +176,7 @@ final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UN
         about.target = self
         appMenu.addItem(about)
         appMenu.addItem(.separator())
-        let settings = NSMenuItem(title: "Type AB1 Settings…", action: #selector(showSettings), keyEquivalent: ",")
+        let settings = NSMenuItem(title: "Settings…", action: #selector(showSettingsFromMenu), keyEquivalent: ",")
         settings.target = self
         appMenu.addItem(settings)
         appMenu.addItem(.separator())
@@ -193,9 +212,10 @@ final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UN
         NSApp.mainMenu = mainMenu
 
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(woke), name: NSWorkspace.didWakeNotification, object: nil)
+        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(woke), name: NSWorkspace.screensDidWakeNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(systemZoneChanged), name: .NSSystemTimeZoneDidChange, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(systemClockChanged), name: .NSSystemClockDidChange, object: nil)
-        reloadWidgetTimelines()
+        widgetKeeper.start()
     }
 
     func configureWindow() {
@@ -206,29 +226,6 @@ final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UN
             window.collectionBehavior = [.managed]
         }
         window.setContentSize(NSSize(width: model.footprint.width(for: model.sizingStandard), height: model.footprint.height(for: model.sizingStandard)))
-    }
-
-    func configureMenuBar() {
-        if model.showMenuBarItem {
-            if statusItem == nil {
-                let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-                item.button?.image = NSImage(systemSymbolName: "clock", accessibilityDescription: "Type AB1")
-                let menu = NSMenu()
-                menu.delegate = self
-                item.menu = menu
-                statusItem = item
-            }
-        } else {
-            if let item = statusItem {
-                NSStatusBar.system.removeStatusItem(item)
-                statusItem = nil
-            }
-        }
-    }
-
-    func menuNeedsUpdate(_ menu: NSMenu) {
-        menu.items.removeAll()
-        populateMenu(menu, context: .menuBar)
     }
 
     func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
@@ -243,13 +240,13 @@ final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UN
     }
 
     func populateMenu(_ menu: NSMenu, context: MenuContext) {
-        if context == .dock || context == .menuBar {
+        if context == .dock {
             let showItem = NSMenuItem(title: "Show Type AB1", action: #selector(showClock), keyEquivalent: "")
             showItem.target = self
             menu.addItem(showItem)
         }
 
-        let settingsItem = NSMenuItem(title: "Type AB1 Settings…", action: #selector(showSettings), keyEquivalent: ",")
+        let settingsItem = NSMenuItem(title: "Settings…", action: #selector(showSettingsFromMenu), keyEquivalent: ",")
         settingsItem.target = self
         menu.addItem(settingsItem)
 
@@ -257,14 +254,14 @@ final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UN
 
         let zoneItem = NSMenuItem(title: "Time Zone", action: nil, keyEquivalent: "")
         let zonesMenu = NSMenu(title: "Time Zone")
-        let sysItem = NSMenuItem(title: "System · \(TimeZone.autoupdatingCurrent.identifier)", action: #selector(selectZone(_:)), keyEquivalent: "")
+        let sysItem = NSMenuItem(title: "System (\(ClockTime.cityName(TimeZone.autoupdatingCurrent.identifier)))", action: #selector(selectZone(_:)), keyEquivalent: "")
         sysItem.target = self
         sysItem.representedObject = "system"
         sysItem.state = model.zoneID == "system" ? .on : .off
         zonesMenu.addItem(sysItem)
         zonesMenu.addItem(.separator())
         for zone in ClockTime.zones {
-            let item = NSMenuItem(title: zone, action: #selector(selectZone(_:)), keyEquivalent: "")
+            let item = NSMenuItem(title: ClockTime.cityName(zone), action: #selector(selectZone(_:)), keyEquivalent: "")
             item.target = self
             item.representedObject = zone
             item.state = model.zoneID == zone ? .on : .off
@@ -272,6 +269,38 @@ final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UN
         }
         zoneItem.submenu = zonesMenu
         menu.addItem(zoneItem)
+
+        let styleItem = NSMenuItem(title: "Style", action: nil, keyEquivalent: "")
+        let stylesMenu = NSMenu(title: "Style")
+        let current = ClockPreset.matching(model.style)?.id
+        for family in ClockFamily.allCases {
+            for preset in ClockPreset.all where preset.style.family == family {
+                let item = NSMenuItem(title: preset.name, action: #selector(selectPreset(_:)), keyEquivalent: "")
+                item.target = self
+                item.representedObject = preset.id
+                item.state = preset.id == current ? .on : .off
+                stylesMenu.addItem(item)
+            }
+            if family != ClockFamily.allCases.last { stylesMenu.addItem(.separator()) }
+        }
+        stylesMenu.addItem(.separator())
+        let customise = NSMenuItem(title: "Customise…", action: #selector(customiseStyle), keyEquivalent: "")
+        customise.target = self
+        stylesMenu.addItem(customise)
+        styleItem.submenu = stylesMenu
+        menu.addItem(styleItem)
+
+        let secondsItem = NSMenuItem(title: "Seconds", action: nil, keyEquivalent: "")
+        let secondsMenu = NSMenu(title: "Seconds")
+        for motion in SecondsMotion.allCases {
+            let item = NSMenuItem(title: motion.name, action: #selector(selectSeconds(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = motion.rawValue
+            item.state = model.style.seconds == motion ? .on : .off
+            secondsMenu.addItem(item)
+        }
+        secondsItem.submenu = secondsMenu
+        menu.addItem(secondsItem)
 
         let sizeItem = NSMenuItem(title: "Clock Size", action: nil, keyEquivalent: "")
         let sizesMenu = NSMenu(title: "Clock Size")
@@ -303,10 +332,6 @@ final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UN
         topItem.state = model.onTop ? .on : .off
         menu.addItem(topItem)
 
-        let menuBarToggle = NSMenuItem(title: "Show in Menu Bar", action: #selector(toggleMenuBar), keyEquivalent: "")
-        menuBarToggle.target = self
-        menuBarToggle.state = model.showMenuBarItem ? .on : .off
-        menu.addItem(menuBarToggle)
 
         menu.addItem(.separator())
 
@@ -331,7 +356,7 @@ final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UN
         aboutItem.target = self
         menu.addItem(aboutItem)
 
-        if context == .clockContext || context == .menuBar {
+        if context == .clockContext {
             menu.addItem(.separator())
             let quitItem = NSMenuItem(title: "Quit Type AB1", action: #selector(quitClock), keyEquivalent: "q")
             quitItem.target = self
@@ -339,11 +364,9 @@ final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UN
         }
     }
 
-    /// Ask macOS to rebuild the widget's timeline after launch, wake, or a clock or
-    /// time-zone change, so it never sits on an old one.
-    private func reloadWidgetTimelines() {
-        WidgetCenter.shared.reloadAllTimelines()
-    }
+    /// Ask macOS to rebuild widget timelines after a clock or time-zone change.
+    /// Launch, wake and the hourly refresh are handled by `WidgetKeeper`.
+    private func reloadWidgetTimelines() { widgetKeeper.reload() }
     @objc func systemZoneChanged() {
         if model.zoneID == "system", model.armed {
             model.disarm(); model.message = "Your Mac’s time zone changed. Set the alarm again for the new zone."
@@ -353,35 +376,59 @@ final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UN
     }
     /// The Mac's clock was set or synced: show the new time and rebuild widget timelines.
     @objc func systemClockChanged() { clockView?.tick(); reloadWidgetTimelines() }
-    @objc func woke() { clockView?.tick(); reloadWidgetTimelines() }
+    /// The widget keeper refreshes widgets on wake; the clock just shows the new time.
+    @objc func woke() { clockView?.tick() }
+    private let widgetKeeper = WidgetKeeper()
     private var clockView: NativeClockView? { window.contentView as? NativeClockView }
     @objc func showClock() {
         window.setIsVisible(true)
         window.orderFrontRegardless()
         NSApp.activate()
     }
-    @objc func showSettings() {
-        if settingsWindow == nil {
-            let settings = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 660), styleMask: [.titled, .closable], backing: .buffered, defer: false)
-            settings.title = "Type AB1 Settings"; settings.isReleasedWhenClosed = false; settings.delegate = self
-            settings.contentView = NSHostingView(rootView: ClockSettings(model: model)); settings.center()
-            settingsWindow = settings
+    @objc func showSettingsFromMenu() { showSettings(nil) }
+    func showSettings(_ tab: SettingsTab?) {
+        if settingsController == nil {
+            let controller = SettingsWindowController(model: model)
+            controller.window?.delegate = self
+            settingsController = controller
         }
-        NSApp.activate(); settingsWindow?.makeKeyAndOrderFront(nil)
+        settingsController?.show(tab)
     }
-    func application(_ application: NSApplication, open urls: [URL]) { showClock() }
+    /// typeab1://show, typeab1://settings, typeab1://style, typeab1://alarm, typeab1://about
+    func application(_ application: NSApplication, open urls: [URL]) {
+        switch urls.first?.host {
+        case "settings": showSettings(.clock)
+        case "alarm": showSettings(.alarm)
+        case "style":
+            // typeab1://style?preset=station switches straight to a preset.
+            let id = urls.first.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false)?.queryItems?.first { $0.name == "preset" }?.value }
+            if let id, let preset = ClockPreset.all.first(where: { $0.id == id }) {
+                model.apply(preset)
+            } else { showSettings(.style) }
+        case "about": showAbout()
+        default: showClock()
+        }
+    }
     @objc func showAbout() {
         if aboutWindow == nil {
-            let about = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 480, height: 610), styleMask: [.titled, .closable], backing: .buffered, defer: false)
-            about.title = "About Type AB1"; about.isReleasedWhenClosed = false; about.delegate = self
-            about.contentView = NSHostingView(rootView: ClockAbout()); about.center(); aboutWindow = about
+            let host = NSHostingController(rootView: ClockAbout())
+            host.sizingOptions = [.preferredContentSize]
+            let about = NSWindow(contentViewController: host)
+            about.styleMask = [.titled, .closable, .fullSizeContentView]
+            about.titlebarAppearsTransparent = true
+            about.titleVisibility = .hidden
+            about.title = "About Type AB1"
+            about.isMovableByWindowBackground = true
+            about.isReleasedWhenClosed = false; about.delegate = self
+            about.center(); aboutWindow = about
         }
         NSApp.activate(); aboutWindow?.makeKeyAndOrderFront(nil)
     }
+    /// Release SwiftUI windows on close so the idle clock stays small.
     func windowWillClose(_ notification: Notification) {
         guard let closing = notification.object as? NSWindow else { return }
-        if closing === settingsWindow { closing.contentView = nil; settingsWindow = nil }
-        if closing === aboutWindow { closing.contentView = nil; aboutWindow = nil }
+        if closing === settingsController?.window { settingsController = nil }
+        if closing === aboutWindow { closing.contentViewController = nil; aboutWindow = nil }
     }
     @objc func quitClock() { NSApp.terminate(nil) }
     @objc func selectZone(_ item: NSMenuItem) {
@@ -397,52 +444,17 @@ final class ClockDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UN
             model.footprint = size
         }
     }
+    @objc func selectPreset(_ item: NSMenuItem) {
+        guard let id = item.representedObject as? String, let preset = ClockPreset.all.first(where: { $0.id == id }) else { return }
+        model.apply(preset)
+    }
+    @objc func selectSeconds(_ item: NSMenuItem) {
+        if let value = item.representedObject as? String, let seconds = SecondsMotion(rawValue: value) { model.style.seconds = seconds }
+    }
+    @objc func customiseStyle() { showSettings(.style) }
     @objc func toggleSpaces() { model.allSpaces.toggle() }
     @objc func toggleTop() { model.onTop.toggle() }
-    @objc func toggleMenuBar() { model.showMenuBarItem.toggle() }
     @objc func armAlarm() { model.arm() }
     @objc func disarmAlarm() { model.disarm() }
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions { [.banner, .sound, .list] }
-}
-
-struct ClockSettings: View {
-    @ObservedObject var model: ClockModel
-    var body: some View {
-        Form {
-            Section("Your Mac keeps the time") {
-                Picker("Time zone", selection: $model.zoneID) {
-                    Text("System time zone").tag("system")
-                    ForEach(ClockTime.zones, id: \.self) { Text($0).tag($0) }
-                }
-                Text(model.zoneLabel).font(.caption).foregroundStyle(.secondary)
-                Text("Always reads your Mac’s system clock. System time zone follows System Settings → Date & Time. A city changes the display, including daylight saving; it does not change your Mac’s time or Apple Clock’s city list.").font(.caption).foregroundStyle(.secondary)
-            }
-            Picker("Size reference", selection: $model.sizingStandard) {
-                ForEach(ClockSizingStandard.allCases) { Text($0.label).tag($0) }
-            }
-            Picker("Clock size", selection: $model.footprint) {
-                ForEach(ClockFootprint.allCases) { Text($0.label(for: model.sizingStandard)).tag($0) }
-            }
-            Text("The complete clock, including its raised button, fits inside the chosen size. Match Calendar uses a 170-point small clock; Native Mac uses 164.").font(.caption).foregroundStyle(.secondary)
-            Toggle("Show on all Spaces", isOn: $model.allSpaces)
-            Toggle("Always on top", isOn: $model.onTop)
-            Text(model.onTop ? "Floats above other windows." : "Sits among your windows like any other. Stays on one Space unless Show on all Spaces is on.").font(.caption).foregroundStyle(.secondary)
-            Toggle("Show in menu bar", isOn: $model.showMenuBarItem)
-            Text(model.showMenuBarItem ? "Displays a Type AB1 icon in the macOS menu bar." : "Off by default. Access Type AB1 via the Dock icon and right-click menu.").font(.caption).foregroundStyle(.secondary)
-            Section("One-time alarm in the selected time zone") {
-                HStack {
-                    Picker("Hour", selection: $model.alarmHour) { ForEach(0..<24) { Text(String(format: "%02d", $0)).tag($0) } }
-                    Picker("Minute", selection: $model.alarmMinute) { ForEach(0..<60) { Text(String(format: "%02d", $0)).tag($0) } }
-                }.disabled(model.armed || model.scheduling)
-                Button(model.armed ? "Disarm alarm" : model.scheduling ? "Scheduling…" : "Save and arm alarm") {
-                    if model.armed { model.disarm() } else { model.arm() }
-                }.disabled(model.scheduling)
-                if let alarm = model.nextAlarm { Text("Armed for \(alarm.formatted(date: .abbreviated, time: .shortened)) (Mac local time)").font(.caption) }
-                Text("Uses a macOS notification and its default sound. Sleep, Focus and notification settings can delay or silence delivery. It is a reminder, not a continuous ringing alarm.").font(.caption).foregroundStyle(.secondary)
-                if !model.message.isEmpty { Text(model.message).font(.caption).foregroundStyle(.orange) }
-            }
-            Text("Drag the housing to move. Right-click or use the Dock for settings and controls. For the desktop widget, choose Edit Widgets and look for Type AB1 (small or large).").font(.caption).foregroundStyle(.secondary)
-            Button("About this little clock…") { model.openAbout?() }
-        }.formStyle(.grouped).padding().frame(width: 460, height: 660)
-    }
 }

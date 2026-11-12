@@ -9,9 +9,18 @@
 An analog clock for your very digital Mac.<br>
 Three hands, a green button, and excellent manners.
 
+![Version 2.0](https://img.shields.io/badge/version-2.0-black)
 ![macOS 14+](https://img.shields.io/badge/macOS-14%2B-black)
 ![Apple Silicon](https://img.shields.io/badge/Apple_Silicon-required-black)
+![Styles: 9 presets](https://img.shields.io/badge/styles-9_presets-black)
+![Widgets: 3](https://img.shields.io/badge/widgets-3-black)
 ![License: MIT](https://img.shields.io/badge/License-MIT-black)
+
+<br>
+
+<img src="docs/images/real-and-drawn.jpg" width="760" alt="A photograph of a real AB1A clock beside Type AB1's drawn clock, both showing 10:12 with the alarm hand at 3">
+
+*Left, the real one on my desk. Right, Type AB1, drawn entirely in code and set to the same moment.*
 
 </div>
 
@@ -21,13 +30,21 @@ Put it in a nice corner. Let the yellow hand take its little walks. Occasionally
 
 No batteries required. One Mac recommended.
 
+```sh
+git clone https://github.com/duivesteyn/type-AB1A.git && cd type-AB1A && ./Scripts/install.sh
+```
+
 ## Contents
 
 - [A small ode to a small square](#a-small-ode-to-a-small-square)
-- [The little square that started it](#the-little-square-that-started-it)
 - [Meet your new desk companion](#meet-your-new-desk-companion)
+- [A clock for every desk](#a-clock-for-every-desk)
+- [A button with a job](#a-button-with-a-job)
 - [A cousin in the widget gallery](#a-cousin-in-the-widget-gallery)
 - [Get ticking](#get-ticking)
+- [Getting along with it](#getting-along-with-it)
+- [Settings and About](#settings-and-about)
+- [When something seems off](#when-something-seems-off)
 - [A clock that lives in a tab, too](#a-clock-that-lives-in-a-tab-too)
 - [Light on its feet](#light-on-its-feet)
 - [For fellow tinkerers](#for-fellow-tinkerers)
@@ -41,58 +58,85 @@ No batteries required. One Mac recommended.
 > no feed to scroll, no world to save —\
 > just time, behaving. Mostly. Brave.
 
-Type AB1 is an independent digital tribute to the **Braun AB 1**, designed by **Dietrich Lubs in 1987**, and to the clarity of Braun’s design tradition under **Dieter Rams**. A small thank-you to an object that knew when to stop designing.
+Type AB1 is a digital tribute to the **AB 1**, designed by **Dietrich Lubs in 1987**, and to the clarity of the design tradition around **Dieter Rams**. A small thank-you to an object that knew when to stop designing.
 
-The [Bröhan Museum’s Braun 100 exhibition catalogue](https://www.broehan-museum.de/wp-content/uploads/Bildliste_Braun100.pdf) credits the original. Our artwork is a reimagining of that clock family. Braun’s name and original design belong to their owners; this project has no affiliation or endorsement.
-
-## The little square that started it
-
-<div align="center">
-
-<img src="20261014_Braun_AB1A_Type3885_BMD.jpeg" width="600" alt="Benjamin’s own Braun AB1A clock on his desk">
-
-*My own Braun AB1A — photographed by Benjamin Duivesteyn, 14 October 2026.*
-
-</div>
-
-This is the real desk companion behind the digital one. The yellow hand has been doing its rounds long before this app had a bundle identifier. Type AB1 is my way of giving it a small, pixel-powered cousin.
+The real desk companion behind the digital one is my own AB1A, [photographed here on 14 October 2026](20261014_Braun_AB1A_Type3885_BMD.jpeg). Its yellow hand was doing its rounds long before this app had a bundle identifier. Type AB1 is my way of giving it a small, pixel-powered cousin.
 
 ## Meet your new desk companion
 
 - **Purely analog.** White hour and minute hands, a yellow ticking second hand with its round counterweight, and a tactile little top button. The time stays on the dial.
-- **Drawn, not pasted.** Housing, dial, numerals, hands and crystal are all drawn in code from one set of measurements, taken from the real clock pictured above. Matte grained plastic, a recessed dial under clear glass, shadows that fall the way the light does. Sharp at 16 pixels and at full screen; the app, widget, icon and browser preview all share it.
-- **Your Mac keeps the time.** System time zone is the default. Choose a city in settings to look elsewhere in the world; macOS handles daylight saving and those delightfully awkward half-hour offsets.
-- **A size that gets along with its neighbours.** The default **Match Calendar** reference uses **170 × 170**, **364 × 170** and **364 × 382** points. Choose **Native Mac** for **164 × 164**, **344 × 164** and **344 × 344**. The whole visible clock, raised button included, stays inside its footprint. Wide layouts centre the analog clock; Retina pixels do their own thing underneath.
+- **Drawn, not pasted.** Housing, dial, numerals, hands and crystal are all drawn in code from one set of measurements, taken from the real clock. Matte grained plastic, a recessed dial under clear glass, shadows that fall the way the light does. Sharp at 16 pixels and at full screen, and shared by the app, the widget, the icon and the browser preview.
+- **Your Mac keeps the time.** It reads the real system time on every tick. System time zone is the default; choose a city to look elsewhere in the world, and macOS handles daylight saving and those delightfully awkward half-hour offsets.
+- **A size that gets along with its neighbours.** The default **Match Calendar** reference uses **170 × 170**, **364 × 170** and **364 × 382** points. Choose **Native Mac** for **164 × 164**, **344 × 164** and **344 × 344**. The whole clock, raised button included, stays inside its footprint; wide layouts centre it. The artwork keeps its industrial corners and original proportions, never stretched into another shape.
+- **Dock only.** Lives in your Dock, with a full menu there and on the clock itself. Nothing is added to your menu bar.
+- **Sits where you put it.** Every clock stands on the bottom edge of its window, so it can rest right on the bottom of your screen.
 
-  The artwork keeps its industrial corners and original proportions. Type AB1 does not add an Apple-style enclosure or stretch the clock into a different shape. The real system widget fits the bounds supplied by WidgetKit automatically.
-- **Drag it somewhere pleasant.** Grab the housing to move it. Right-click or use the Dock menu for settings, city, size, Spaces, and alarm controls.
-- **A button with a job.** Click the top control to set a one-time alarm. Up means armed; down means off, and a slim green-tipped alarm hand marks the time while it is set. Click again to disarm. Reduce Motion keeps the button’s travels brief: it simply snaps into place.
-- **Dock and right-click first.** Lives in your Dock with a full right-click context menu. An optional menu bar icon can be enabled in settings if preferred.
+## A clock for every desk
 
-> [!NOTE]
-> The clock reads actual system time on every tick. It follows your Mac’s Date & Time settings; choosing a city changes the display, not your Mac or Apple Clock’s World Clock list.
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/styles-dark.png">
+  <img src="docs/images/styles-light.png" width="680" alt="Nine clock presets: Type AB1, Type AB1 White and Lagoon cubes; Arch Night, Arch Day and Stopwatch arched desk clocks; and Station, Studio and Salon wall clocks">
+</picture>
+
+</div>
+
+Three families of clock, each drawn in full detail, and nine presets to start from. Right-click the clock and choose **Style**, or open **Settings → Style** to make one your own.
+
+| Family | What it is | Made in |
+| --- | --- | --- |
+| **Cube** | The square desk alarm clock that started it all, with its top button | Black, White, Lagoon (a glossy teal-blue dial) |
+| **Arch** | A round-topped desk alarm clock, like a tiny tower, with an alarm slider in its base | Black, White |
+| **Wall** | A round wall clock with a broad moulded rim and a large, airy dial | White, Black |
+
+Every finish can also **Match appearance**: black in Dark Mode, white in Light.
+
+Then make it yours:
+
+- **Numerals:** 1 – 12, 5 – 60 (minutes, like a stopwatch), Roman, just 12 · 3 · 6 · 9, or none.
+- **Hands:** Classic yellow seconds, Luminous (a mint strip in each hand), Red minute, Red seconds (station-clock style), All red, or Monochrome.
+- **Seconds:** **Tick**, a smooth **Sweep**, or **Off**, remembered separately for each family: your wall clock can sweep while your cube ticks. Change it from the right-click menu under **Seconds**, too.
+- **Details:** a date window in place of the 3, “quartz” printed on the dial, and the crystal’s reflection.
+
+## A button with a job
+
+<div align="center">
+
+<img src="docs/images/button-states.png" width="620" alt="Two clocks: on the left the top button is down; on the right it is raised and a green-tipped alarm hand points to 7">
+
+*Down: no alarm. Up: armed, with the alarm hand pointing at the time.*
+
+</div>
+
+Click the top button and the **Alarm** settings open: pick a time, choose **Arm**, and the button rises. **Up means armed, down means off**, and a slim green-tipped hand points at the alarm time while it is set. Click the raised button to disarm. You can also arm and disarm from the right-click or Dock menu. With Reduce Motion on, the button simply snaps into place.
+
+On the **Arch**, the alarm is the slider in the base: slide it across to uncover signal green. The **Wall** clock has no control of its own, so use the menu or Settings; its green-tipped alarm hand still shows when armed.
 
 > [!IMPORTANT]
-> Alarms use macOS notifications and the default notification sound. Grant notification permission before arming one. Focus, sleep and notification settings can delay or silence delivery, so treat it as a friendly reminder rather than your sole defence against missing a flight. Changing time zone disarms the alarm so you can set it for the new city.
+> Alarms use macOS notifications and the default notification sound. Allow notifications for Type AB1 before arming one. Focus, sleep and notification settings can delay or silence delivery, so treat it as a friendly reminder rather than your sole defence against missing a flight. Changing time zone disarms the alarm so you can set it again for the new city.
 
 ## A cousin in the widget gallery
 
-The native **Type AB1 widget** brings the same little square to macOS’s desktop and Notification Centre, in **Small** and **Large**.
+<div align="center">
 
-It is purely analog, with hour and minute hands. The seconds hand takes a well-earned holiday: WidgetKit supplies snapshots, and **macOS decides when to display updates**. Three hours of minute positions are prepared ahead of time, without a continuously running timer, and macOS is asked for fresh ones after the first hour. A late or skipped refresh therefore never stops the hands. [Apple explains the refresh rules here](https://developer.apple.com/documentation/widgetkit/keeping-a-widget-up-to-date).
+<img src="docs/images/widgets.jpg" width="620" alt="Three Type AB1 widgets on a blue desktop: a large cube, a small arch and a small wall clock">
 
-The command-line build’s widget follows your **system time zone**. The Xcode build also enables per-widget city selection through App Intents. Once the app is installed and discovered by macOS, open **Edit Widgets** and look for **Type AB1**.
+</div>
 
-> [!TIP]
-> **Widget stuck on an old time?** That usually means macOS knows about more than one copy of the app and is holding on to an old timeline. Run `./Scripts/install.sh`: it builds, installs the only registered copy into `/Applications`, and launches it, which asks macOS for a fresh timeline. Every build now carries a new build number, so macOS never mistakes it for the previous one.
+Three native widgets bring the clocks to the desktop and Notification Centre: **Type AB1** (the cube), **Type AB1 Arch** and **Type AB1 Wall**, each in **Small** and **Large**. They follow your Mac’s appearance: black in Dark Mode, white in Light. Open **Edit Widgets** and look for **Type AB1**.
+
+It shows hours and minutes. The seconds hand takes a well-earned holiday: WidgetKit shows prepared snapshots, and **macOS decides when to display updates**. Type AB1 prepares three hours of minute positions at a time and asks for fresh ones after the first hour, so a late refresh never stops the hands.
+
+While the app is running, it also keeps the widgets honest. macOS sometimes stops refreshing a widget after a long sleep, so Type AB1 restarts its own widget process and asks for fresh timelines at launch, on every wake, and every third hour, with a plain refresh in between. Keep the app running (it lives in the Dock anyway) and the widgets stay on time. [Apple explains the refresh rules here](https://developer.apple.com/documentation/widgetkit/keeping-a-widget-up-to-date).
+
+The command-line build’s widget follows your **system time zone**. The Xcode build adds a city choice per widget.
 
 ## Get ticking
 
 **Requires macOS 14 or later.** The command-line build targets **Apple silicon**.
 
-If you have a downloaded build, unzip it and open **Type AB1.app**. The app contains its native widget extension; the widget is not a separate app to double-click.
-
-**Build and install from source** (replaces `/Applications/Type AB1.app`):
+**Build and install** (replaces `/Applications/Type AB1.app` and launches it):
 
 ```sh
 ./Scripts/install.sh
@@ -105,59 +149,122 @@ If you have a downloaded build, unzip it and open **Type AB1.app**. The app cont
 open "build/Type AB1.app"
 ```
 
-Keep one copy around: if you run the `build` copy and an installed one, macOS sees two widgets with the same identity.
+Keep one copy around: running both the `build` copy and an installed one gives macOS two widgets with the same identity. `install.sh` takes care of that for you.
 
-**Prefer Xcode?** Open `Clock.xcodeproj`, select the **Clock** scheme, choose your Apple development team for both targets, and run. The scheme’s internal name is Clock; the built app is Type AB1.
+If you have a downloaded build, unzip it and move **Type AB1.app** to Applications. The widget lives inside the app; there is nothing else to install.
+
+**Prefer Xcode?** Open `Clock.xcodeproj`, select the **Clock** scheme, choose your Apple development team for both targets, and run. The built app is Type AB1. Added a source file? Regenerate the project with `python3 Scripts/generate-project.py`.
 
 > [!TIP]
-> The command-line build is ad-hoc signed for local use. Distribution signing and notarization are separate steps. Configurable widgets use Xcode’s App Intents metadata processing.
+> The command-line build is ad-hoc signed for local use. Distribution signing and notarization are separate steps.
 
-**Added a source file?** Regenerate the project:
+## Getting along with it
 
-```sh
-python3 Scripts/generate-project.py
-```
+| To | Do this |
+| --- | --- |
+| Move the clock | Drag the housing |
+| Set or clear the alarm | Click the top button (or press Space or Return when the clock is selected) |
+| Change style, seconds, city, size, Spaces or **Always on Top** | Right-click the clock, or use the Dock menu |
+| Open Settings | **⌘,** |
+| Bring the clock back | Click the Dock icon, or **Window → Show Type AB1** (**⌘0**) |
+| Add the widget | Right-click the desktop → **Edit Widgets** → **Type AB1** |
+
+Settings, size and position are remembered between launches. With **Show on all Spaces** off, the clock stays on the Space you put it on.
+
+> [!NOTE]
+> Choosing a city changes only what this clock shows. It never changes your Mac’s time or Apple Clock’s World Clock list.
+
+## Settings and About
+
+<div align="center">
+
+<img src="docs/images/settings-style.png" width="330" alt="Settings, Style tab: a live preview, a gallery of nine presets and the clock family switch"> <img src="docs/images/settings-clock.png" width="300" alt="Settings, Clock tab: time zone, clock size and placement">
+
+<img src="docs/images/settings-alarm.png" width="300" alt="Settings, Alarm tab: alarm status with an Arm button, alarm time and city"> <img src="docs/images/about.png" width="250" alt="About window with the app icon, version and credits">
+
+</div>
+
+**Settings** (**⌘,**) has three tabs, in the style of System Settings:
+
+- **Clock**: the time zone (your Mac’s, or a city), the clock’s size and which widgets it matches, and placement: all Spaces, and always on top.
+- **Style**: a live preview, the preset gallery, and every option for the family you choose.
+- **Alarm**: whether an alarm is armed and when it rings, an **Arm**/**Disarm** button, and the alarm time. The clock’s top button opens this tab.
+
+**About** shows the version, credits and links to the original clock and this source.
+
+## When something seems off
+
+<details>
+<summary><strong>The widget is stuck on an old time</strong></summary>
+
+Open Type AB1 (or quit and reopen it). At launch it restarts its widget process and asks macOS for fresh timelines, which fixes a stuck widget within a few seconds. It does the same on every wake and every third hour while running, so this should only happen if the app was quit.
+
+Still stuck? macOS may know about more than one copy of the app. Run `./Scripts/install.sh`: it installs the only registered copy into `/Applications`, stops any old widget process and launches the app. If an old widget still won’t budge, remove it from the desktop and add it again.
+
+</details>
+
+<details>
+<summary><strong>The alarm didn’t sound</strong></summary>
+
+Check **System Settings → Notifications → Type AB1** is allowed, with sound on, and that Focus isn’t holding it back. If macOS refused permission, the Alarm tab says so. A sleeping Mac can deliver it late. The button drops back down once the alarm time has passed, delivered or not.
+
+</details>
+
+<details>
+<summary><strong>The clock disappeared</strong></summary>
+
+It may be on another Space, or behind a window. Click the Dock icon or press **⌘0**. Right-click the clock and choose **Always on Top**, or turn on **Show on all Spaces** in Settings, if you’d like it to stay in view.
+
+</details>
 
 ## A clock that lives in a tab, too
 
-Open `art/Clock-Live-Preview.html` in a browser. Its artwork is embedded, so it works offline. Pick a city, watch the hands, and give the button a little click.
+Open `art/Clock-Live-Preview.html` in a browser. It uses the app’s own artwork, works offline, and follows light and dark mode. Pick a city, watch the hands, and give the button a little click.
 
-The browser button demonstrates the mechanism; it does **not** schedule an alarm. The About panel contains the same ode and icon. A small museum exhibit, with unusually accurate opening hours.
+The browser button demonstrates the mechanism; it does **not** schedule an alarm. A small museum exhibit, with unusually accurate opening hours.
 
 ## Light on its feet
 
-The desktop clock uses **AppKit** and Core Graphics, one tick per second, and pauses entirely while it is covered or on another Space. The static housing and dial are drawn once for the size on screen; only the hands, button and glass are redrawn each second. No accounts, analytics, network requests, bundled bitmaps or third-party runtime dependencies.
+The desktop clock is built from **Core Animation** layers. The case and dial are drawn once for the size on screen; each hand is a small image that macOS turns. A ticking clock updates its hands once a second. A sweeping seconds hand is one continuous turn that macOS runs by itself, so even Sweep costs the app next to nothing. Everything pauses while the clock is covered or on another Space.
 
-At a 170-point clock height, an idle run on 11 November 2026 measured **16 MB physical memory footprint** and **0.4% of one CPU core**. The **20 MB goal applies to the idle desktop clock**; larger sizes, Settings and About can use more. The system widget runs in a separate macOS host.
+On 12 November 2026, at a 170-point clock height, the idle clock measured **about 18 MB of memory**, with **0.0% CPU** whether ticking or sweeping. The **20 MB goal applies to the idle desktop clock**; larger sizes, Settings and About can use more. The widget runs in a separate macOS process.
 
-> [!TIP]
-> Curious? About → **Measure idle use** shows a ten-second CPU sample and the current memory footprint. Opening About counts as activity — even a little clock notices when you admire it.
+**No accounts, analytics or network requests.** Nothing leaves your Mac.
 
 ## For fellow tinkerers
 
 | Where | What lives there |
 | --- | --- |
-| `Sources/App/` | Native desktop view, settings, alarms and the small ode |
-| `Sources/Widget/` | Widget configuration and timeline provider |
-| `Sources/Shared/ClockDesign.swift` | **The artwork**: every measurement, colour and drawing step |
-| `Sources/Shared/ClockRaster.swift` | Renders and caches the still parts per size |
+| `Sources/Shared/ClockStyle.swift` | Families, finishes, numerals, hands, seconds and the presets |
+| `Sources/Shared/ClockDesign.swift` | **The cube**: every measurement, colour and drawing step of the original |
+| `Sources/Shared/ClockFamilies.swift` | **The arch and the wall**, each in its own artboard units |
+| `Sources/Shared/ClockFaces.swift` | Palettes, and the dial kit every face shares: ticks, numerals, hands, hub, date window, glass |
+| `Sources/Shared/ClockRaster.swift` | Renders and caches the still parts per style and size |
 | `Sources/Shared/` (others) | Clock maths, sizes, and the SwiftUI layers for widget and About |
-| `Scripts/` | Build, install, icon, preview and Xcode-project tools |
+| `Sources/App/` | Desktop view, Settings and About windows, menus and alarms |
+| `Sources/Widget/` | Widget configuration and timeline |
+| `Scripts/` | Build, install, icon, image, preview and Xcode-project tools |
+| `docs/images/` | README pictures, rendered from the app’s artwork |
 | `art/Clock-Live-Preview.html` | Browser preview, regenerated from the app’s artwork |
 | `art/Clock-Live-Artwork-v1/` | The original raster artwork package, kept for reference |
 | `Config/` | Bundle details and entitlements |
 
-All artwork shares a **1254 × 1254** artboard. The hands turn around **(627, 677)**. Please keep that pivot: a clock with wandering elbows is a different project entirely. Renderers show the square from **(76, 98)**, **1102** units on a side, which holds the housing and the fully raised button.
+The cube’s artwork shares a **1254 × 1254** artboard, and its hands turn around **(627, 677)**. Please keep that pivot: a clock with wandering elbows is a different project entirely. Renderers show the square from **(76, 98)**, **1102** units on a side, which holds the housing and the fully raised button. The arch and the wall each have their own units; every face’s visible area ends exactly at its base.
 
-Changed something in `ClockDesign.swift`? Refresh everything that is drawn from it:
+**Adding a preset** is one line in `ClockPreset.all`. A new family is a type that follows the `ClockFace` protocol: its crop, its dial, and how to draw its case and alarm control.
+
+**Links** open the app where you need it: `typeab1://settings`, `typeab1://style`, `typeab1://alarm`, `typeab1://about`, and `typeab1://show` (the widget uses this one). `typeab1://style?preset=station` switches straight to a preset, handy for Shortcuts.
+
+**The icon** is the clock’s own housing, filling Apple’s rounded-square icon shape (824 points on a 1024 canvas). macOS 26 shows icons that fill that shape at full size; anything else is shrunk onto a grey tile. Below 64 pixels it drops the numerals and minute ticks and thickens the hands. It is set to **10:10**: it likes to look cheerful for photographs.
+
+Changed the artwork? Refresh everything drawn from it:
 
 ```sh
-./Scripts/render-previews.sh        # PNGs of the clock and widget in build/Previews
 ./Scripts/make-icon.sh              # Resources/icon-*.png and Clock.icns
+./Scripts/make-readme-images.sh     # docs/images (the window screenshots are taken by hand)
+./Scripts/render-previews.sh        # build/Previews, for a quick look
 python3 Scripts/make-preview-html.py && node Scripts/check-html.js
 ```
-
-The icon is set to **10:10**. It likes to look cheerful for photographs.
 
 <details>
 <summary><strong>Run the checks</strong></summary>
@@ -169,21 +276,22 @@ build/ClockTimeTests
 
 swiftc -parse-as-library -module-cache-path build/module-cache \
   Sources/Shared/ClockTime.swift Sources/Shared/ClockLayout.swift Sources/Shared/ClockDesign.swift \
-  Sources/Shared/ClockRaster.swift Tests/ClockLayoutTests.swift -o build/ClockLayoutTests
+  Sources/Shared/ClockRaster.swift Sources/Shared/ClockStyle.swift Sources/Shared/ClockFaces.swift \
+  Sources/Shared/ClockFamilies.swift Tests/ClockLayoutTests.swift -o build/ClockLayoutTests
 build/ClockLayoutTests
 ```
 
-The first covers midnight rollover, Adelaide’s half-hour offset, daylight-saving transitions, next-alarm scheduling and the widget’s three-hour timeline. The second covers the size references, that the housing and raised button fit the visible square, hand reach, the pivot, and that the artwork renders. Live widget updates, alarm delivery across sleep/reboot, and Spaces behaviour still need device testing.
+The first covers midnight rollover, Adelaide’s half-hour offset, daylight-saving transitions, next-alarm scheduling and the widget’s three-hour timeline. The second covers the size references; for every family, that the case and alarm control fit the visible area, the hands stay inside the ticks and the case reaches the bottom edge; that styles save and load (including older or unknown values); and that all nine presets render in Light and Dark. Live widget updates, alarm delivery across sleep and restarts, and Spaces behaviour still need testing on a Mac.
 
 </details>
 
 ## Made with a fondness for useful things
 
-By **Benjamin Duivesteyn**. Source and included project artwork are released under the **[MIT license](LICENSE)**, with the original design credited to its owners.
+By **Benjamin Duivesteyn**. Source and included project artwork are released under the **[MIT license](LICENSE)**, with the original design credited to Dietrich Lubs. See [what changed](CHANGELOG.md) in each version.
 
 | | |
 | --- | --- |
-| **App** | Type AB1 1.1 · `com.duivesteyn.typeab1` |
+| **App** | Type AB1 2.0 · `com.duivesteyn.typeab1` |
 | **Executable** | `TypeAB1` |
 | **Widget** | `TypeAB1Widget.appex` · `com.duivesteyn.typeab1.widget` |
 
