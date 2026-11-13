@@ -26,10 +26,10 @@ enum ArchFace: ClockFace {
     static let spec = DialSpec(
         center: center, face: 327, tickOuter: 311, minorTick: CGSize(width: 2.8, height: 13), majorTick: CGSize(width: 5.1, height: 44),
         roundTicks: true, numeralSize: 50, numeralGap: 12, numeralFont: "HelveticaNeue-Medium",
-        hour: HandShape(length: 170, width: 24, tail: 52, corner: 0.35),
-        minute: HandShape(length: 268, width: 21, tail: 59, corner: 0.35),
+        hour: HandShape(length: 170, width: 24, tail: 28, corner: 0.35),
+        minute: HandShape(length: 268, width: 21, tail: 28, corner: 0.35),
         second: HandShape(length: 288, width: 9.4, tail: 82, tipWidth: 4.3),
-        alarmLength: 300, hubRadius: 33, pinRadius: 10.5, glassRadius: bezel)
+        alarmLength: 300, counterweight: (17, 36), hubRadius: 37, glassRadius: bezel)
 
     /// Ends exactly at the base, so the clock can stand on the bottom of the screen.
     static func crop(_ style: ClockStyle) -> CGRect { CGRect(x: 0, y: 0, width: 936, height: caseRect.maxY) }
@@ -109,10 +109,10 @@ enum WallFace: ClockFace {
     static let spec = DialSpec(
         center: center, face: 410, tickOuter: 390, minorTick: CGSize(width: 3, height: 16), majorTick: CGSize(width: 5.5, height: 35),
         roundTicks: true, numeralSize: 64, numeralGap: 16, numeralFont: "HelveticaNeue-Medium",
-        hour: HandShape(length: 213, width: 27, tail: 66, corner: 0.35),
-        minute: HandShape(length: 336, width: 24, tail: 74, corner: 0.35),
+        hour: HandShape(length: 213, width: 27, tail: 36, corner: 0.35),
+        minute: HandShape(length: 336, width: 24, tail: 36, corner: 0.35),
         second: HandShape(length: 361, width: 10, tail: 103, tipWidth: 4.6),
-        alarmLength: 380, hubRadius: 33, pinRadius: 10.5, glassRadius: 428)
+        alarmLength: 380, counterweight: (22, 45), hubRadius: 47, glassRadius: 428)
 
     /// Ends exactly at the bottom of the rim.
     static func crop(_ style: ClockStyle) -> CGRect { CGRect(x: 0, y: 0, width: 1000, height: center.y + rim) }

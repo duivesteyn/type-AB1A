@@ -165,6 +165,8 @@ private func clockWidget(kind: String, name: String, description: String, style:
         .description(description)
         .supportedFamilies(families)
         .contentMarginsDisabled()
+        // The clock is the whole design: never strip, tint or dim it as glass.
+        .containerBackgroundRemovable(false)
     #else
     // A fully native system-clock widget without an App Intents metadata dependency.
     StaticConfiguration(kind: kind, provider: SystemClockProvider(style: style)) { entry in ClockWidgetView(entry: entry) }
@@ -172,6 +174,8 @@ private func clockWidget(kind: String, name: String, description: String, style:
         .description(description)
         .supportedFamilies(families)
         .contentMarginsDisabled()
+        // The clock is the whole design: never strip, tint or dim it as glass.
+        .containerBackgroundRemovable(false)
     #endif
 }
 

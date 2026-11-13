@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Arch and Wall now share the cube's solid yellow centre knob, with a seconds counterweight, in place of a ring and dark pin. The hands' back ends tuck under it.
+- Widgets declare their background non-removable, so macOS no longer turns them into see-through glass.
 - Thicker hour, minute and seconds hands on every clock, matched to the real Type AB1. The cube's hour hand is now 30 units wide (was 25), its minute hand 26 (was 20) and its seconds hand 8 (was 6). The arch and wall hands are thicker in the same proportion. The hands now read clearly at widget size.
 - When the desktop dims widgets in the background, the widget flattens its layers before macOS dims them, so the hands no longer show through the yellow hub.
 - The Settings window is titled after its tab instead of "Untitled", and every tab is the same width.
