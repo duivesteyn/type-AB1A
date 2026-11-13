@@ -118,7 +118,7 @@ final class ClockModel: ObservableObject {
                 components.timeZone = zone
                 let content = UNMutableNotificationContent()
                 content.title = "Type AB1 alarm"
-                content.body = "It’s \(String(format: "%02d:%02d", alarmHour, alarmMinute)) in \(zone.identifier)."
+                content.body = "It’s \(String(format: "%02d:%02d", alarmHour, alarmMinute)) in \(ClockTime.cityName(zone.identifier))."
                 content.sound = .default
                 try await center.add(UNNotificationRequest(identifier: "clock.alarm", content: content,
                                                           trigger: UNCalendarNotificationTrigger(dateMatching: components, repeats: false)))

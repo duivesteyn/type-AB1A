@@ -10,9 +10,13 @@ struct ClockAbout: View {
         return build.isEmpty ? "Version \(short)" : "Version \(short) (\(build))"
     }
 
+    /// Read from the bundle, not the Dock's icon cache, so it always matches this build.
+    private static let icon: NSImage = Bundle.main.url(forResource: "Clock", withExtension: "icns")
+        .flatMap(NSImage.init(contentsOf:)) ?? NSApp.applicationIconImage
+
     var body: some View {
         VStack(spacing: 0) {
-            Image(nsImage: NSApp.applicationIconImage)
+            Image(nsImage: Self.icon)
                 .resizable()
                 .frame(width: 128, height: 128)
                 .accessibilityHidden(true)

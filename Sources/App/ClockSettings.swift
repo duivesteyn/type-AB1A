@@ -26,6 +26,7 @@ enum SettingsTab: Int, CaseIterable {
             }
             let host = NSHostingController(rootView: pane)
             host.sizingOptions = [.preferredContentSize]
+            host.title = tab.title
             let item = NSTabViewItem(viewController: host)
             item.label = tab.title
             item.image = NSImage(systemSymbolName: tab.symbol, accessibilityDescription: tab.title)
@@ -54,6 +55,10 @@ private final class SettingsTabs: NSTabViewController {
     override func tabView(_ tabView: NSTabView, didSelect tabViewItem: NSTabViewItem?) {
         super.tabView(tabView, didSelect: tabViewItem)
         view.window?.title = tabViewItem?.label ?? "Settings"
+    }
+    override func viewDidAppear() {
+        super.viewDidAppear()
+        view.window?.title = tabViewItems[selectedTabViewItemIndex].label
     }
 }
 
@@ -88,7 +93,7 @@ private struct ClockPane: View {
             } header: {
                 Text("Size")
             } footer: {
-                footnote("\(Int(model.footprint.width(for: model.sizingStandard))) × \(Int(model.footprint.height(for: model.sizingStandard))) points. The whole clock, raised button included, fits inside.")
+                footnote("\(Int(model.footprint.width(for: model.sizingStandard))) × \(Int(model.footprint.height(for: model.sizingStandard))) points. The whole clock fits inside, alarm control included.")
             }
 
             Section {
@@ -97,12 +102,12 @@ private struct ClockPane: View {
             } header: {
                 Text("Placement")
             } footer: {
-                footnote("Drag the housing to move the clock. For the desktop widget, right-click the desktop and choose Edit Widgets.")
+                footnote("Drag the clock to move it. For the desktop widget, right-click the desktop and choose Edit Widgets.")
             }
         }
         .formStyle(.grouped)
         .scrollDisabled(true)
-        .frame(width: 460, height: 470)
+        .frame(width: 520, height: 470)
     }
 }
 
@@ -161,9 +166,7 @@ private struct StylePane: View {
             } header: {
                 Text("Dial")
             } footer: {
-                footnote("Seconds are remembered for each clock: the \(model.style.family.name.lowercased()) can sweep while the others tick." +
-                         (model.style.seconds == .sweep ? " Sweep redraws about 30 times a second while the clock is visible, so it uses a little more energy." : "") +
-                         " 5 – 60 marks minutes, like a stopwatch; the date window replaces the 3.")
+                footnote("Each clock remembers its own seconds, so the \(model.style.family.name.lowercased()) can sweep while the others tick. The date window replaces the 3.")
             }
         }
         .formStyle(.grouped)
@@ -266,14 +269,14 @@ private struct AlarmPane: View {
         }
         .formStyle(.grouped)
         .scrollDisabled(true)
-        .frame(width: 460, height: model.message.isEmpty ? 236 : 296)
+        .frame(width: 520, height: model.message.isEmpty ? 236 : 296)
     }
 
     private var status: String {
         if let alarm = model.nextAlarm {
             return "Rings " + alarm.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened, timeZone: model.zone))
         }
-        return "Set a time and arm it. The clock’s top button rises while armed."
+        return "Set a time and arm it. The clock shows it is armed, as the real one does."
     }
 
     /// The alarm's hour and minute, shown and edited as a time of day.

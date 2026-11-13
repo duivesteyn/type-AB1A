@@ -45,9 +45,9 @@ enum ClockDesign {
     // MARK: Hands
 
     struct Hand { let length: CGFloat; let width: CGFloat; let tail: CGFloat }
-    static let hourHand = Hand(length: 296, width: 25, tail: 36)
-    static let minuteHand = Hand(length: 398, width: 20, tail: 36)
-    static let secondHand = Hand(length: 386, width: 6, tail: 40)
+    static let hourHand = Hand(length: 296, width: 30, tail: 36)
+    static let minuteHand = Hand(length: 398, width: 26, tail: 36)
+    static let secondHand = Hand(length: 386, width: 8, tail: 40)
     static let alarmHand = Hand(length: 394, width: 6, tail: 0)
     static let counterweightRadius: CGFloat = 23
     static let counterweightOffset: CGFloat = 48

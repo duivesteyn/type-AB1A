@@ -1,5 +1,13 @@
 # What changed
 
+## Unreleased
+
+- Thicker hour, minute and seconds hands on every clock, matched to the real Type AB1. The cube's hour hand is now 30 units wide (was 25), its minute hand 26 (was 20) and its seconds hand 8 (was 6). The arch and wall hands are thicker in the same proportion. The hands now read clearly at widget size.
+- When the desktop dims widgets in the background, the widget flattens its layers before macOS dims them, so the hands no longer show through the yellow hub.
+- The Settings window is titled after its tab instead of "Untitled", and every tab is the same width.
+- About shows the current icon, read from the app bundle rather than the Dock's cache.
+- Settings and alarm text now fits every clock family. The alarm notification names the city.
+
 ## 2.0 — 12 November 2026
 
 ### Styles

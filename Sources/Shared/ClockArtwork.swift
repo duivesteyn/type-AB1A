@@ -25,6 +25,9 @@ struct ClockFaceView: View {
                 layer(.body(control: 0), pixels)
                 analog(face.dial(style), crop: crop, pixels: pixels, unit: unit)
             }
+            // When the desktop dims widgets, macOS turns brightness into translucency. Flattening
+            // the layers first keeps the hub solid over the hands instead of see-through.
+            .compositingGroup()
             .frame(width: fitted.width, height: fitted.height)
             .position(x: fitted.midX, y: fitted.midY)
         }
